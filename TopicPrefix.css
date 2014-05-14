@@ -1,0 +1,6 @@
+.topicprefix:before {
+	content: '[';
+}
+.topicprefix:after {
+	content: ']';
+}

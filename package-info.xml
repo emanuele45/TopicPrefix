@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE package-info SYSTEM "http://www.simplemachines.org/xml/package-info">
+<package-info xmlns="http://www.simplemachines.org/xml/package-info" xmlns:smf="http://www.simplemachines.org/">
+	<license><![CDATA[
+/**
+ * Image Lazy Loading
+ *
+ * @author  emanuele
+ * @license BSD http://opensource.org/licenses/BSD-3-Clause
+ *
+ * @version 0.0.2
+ */
+	]]></license>
+	<id>emanuele:img_lazyload</id>
+	<name>Lazy loading of images</name>
+	<version>0.0.2</version>
+	<type>modification</type>
+	<install for="1.0 beta 2, 1.0 RC 1, 1.0 - 1.0.99">
+		<require-file name="LazyLoad.subs.php" destination="SUBSDIR" />
+		<require-file name="jquery.lazyload.min.js" destination="THEMEDIR/scripts" />
+		<hook hook="integrate_buffer" function="img_lazy_loading_buffer" />
+		<hook hook="integrate_load_theme" file="SOURCEDIR/subs/LazyLoad.subs.php" function="img_lazy_loading_scripts" />
+		<hook hook="integrate_credits" file="SOURCEDIR/subs/LazyLoad.subs.php" function="img_lazy_loading_credits" />
+	</install>
+	<uninstall for="1.0 beta 2, 1.0 RC 1, 1.0 - 1.0.99">
+		<remove-file name="SUBSDIR/LazyLoad.subs.php" />
+		<remove-file name="THEMEDIR/scripts/jquery.lazyload.min.js" />
+		<hook reverse="true" hook="integrate_buffer" function="img_lazy_loading_buffer" />
+		<hook reverse="true" hook="integrate_load_theme" file="SOURCEDIR/subs/LazyLoad.subs.php" function="img_lazy_loading_scripts" />
+		<hook reverse="true" hook="integrate_credits" file="SOURCEDIR/subs/LazyLoad.subs.php" function="img_lazy_loading_credits" />
+	</uninstall>
+</package-info>
