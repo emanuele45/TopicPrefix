@@ -30,23 +30,25 @@ class Topic_Prefix_Integrate
 		loadTemplate('TopicPrefix');
 		loadLanguage('TopicPrefix');
 		Template_Layers::getInstance()->addAfter('pickprefix', 'postarea');
-		require_once(SUBSDIR . '/TopicPrefix.subs.php');
+		require_once(SUBSDIR . '/TopicPrefix.class.php');
+		$px_manager = new TopicPrefix();
 
 		// If we are editing a message, we may want to know the old prefix
 		if (isset($_REQUEST['msg']))
 		{
-			$prefix = topicprefix_getTopicPrefixes($topic);
+			$prefix = $px_manager->getTopicPrefixes($topic);
 		}
 
-		$context['available_prefixes'] = topicprefix_getPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null);
+		$context['available_prefixes'] = $px_manager->loadPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null);
 	}
 
 	public static function create_topic($msgOptions, $topicOptions, $posterOptions)
 	{
 		$prefix_id = isset($_POST['prefix']) ? (int) $_POST['prefix'] : 0;
 
-		require_once(SUBSDIR . '/TopicPrefix.subs.php');
-		topicprefix_updateTopicPrefix($topicOptions['id'], $prefix_id);
+		require_once(SUBSDIR . '/TopicPrefix.class.php');
+		$prefix = new TopicPrefix();
+		$prefix->updateTopicPrefix($topicOptions['id'], $prefix_id);
 	}
 
 	public static function before_modify_post($topics_columns, $update_parameters, $msgOptions, $topicOptions, $posterOptions)
@@ -57,8 +59,9 @@ class Topic_Prefix_Integrate
 		// Update the prefix, but only if it is the first message in the topic
 		if ($msgInfo['id_first_msg'] == $msgOptions['id'])
 		{
-			require_once(SUBSDIR . '/TopicPrefix.subs.php');
-			topicprefix_updateTopicPrefix($topicOptions['id'], $prefix_id);
+			require_once(SUBSDIR . '/TopicPrefix.class.php');
+			$prefix = new TopicPrefix();
+			$prefix->updateTopicPrefix($topicOptions['id'], $prefix_id);
 		}
 	}
 

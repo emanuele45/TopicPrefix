@@ -27,8 +27,9 @@ class Prefix_Controller extends Action_Controller
 	public function pre_dispatch()
 	{
 		loadLanguage('TopicPrefix');
-		require_once(SUBSDIR . '/TopicPrefix.subs.php');
+		require_once(SUBSDIR . '/TopicPrefix.class.php');
 
+		$this->px_manager = new TopicPrefix();
 		$this->_base_linktree();
 	}
 
@@ -62,8 +63,8 @@ class Prefix_Controller extends Action_Controller
 		$sort = isset($_GET['sort']) && isset($sort_methods[$_GET['sort']]) ? $sort_methods[$_GET['sort']] : 'id_prefix';
 
 		$this->_base_linktree();
-		$context['prefixes'] = topicprefix_getAllPrefixes($start, $limit, $sort, 'DESC');
-		$num_prefixes = topicprefix_countAllPrefixes();
+		$context['prefixes'] = $this->px_manager->getAllPrefixes($start, $limit, $sort, 'DESC');
+		$num_prefixes = $this->px_manager->countAllPrefixes();
 		foreach ($context['prefixes'] as $prefix_id => $prefix)
 		{
 			$context['prefixes'][$prefix_id] += array(
@@ -97,7 +98,7 @@ class Prefix_Controller extends Action_Controller
 		if (empty($prefix_id))
 			return $this->action_index();
 
-		$prefix_info = topicprefix_getPrefixDetails($prefix_id);
+		$prefix_info = $this->px_manager->getPrefixDetails($prefix_id);
 
 		if (empty($prefix_info))
 			return $this->action_index();
@@ -222,7 +223,7 @@ class Prefix_Controller extends Action_Controller
 		// Allow integration to modify / add to the $indexOptions
 		call_integration_hook('integrate_prefixedtopics_topics', array(&$sort_column, &$indexOptions));
 
-		$topics_info = topicprefix_getPrefixedTopics($prefix_id, $user_info['id'], $start, $maxindex, $context['sort_by'], $sort_column, $indexOptions);
+		$topics_info = $this->px_manager->getPrefixedTopics($prefix_id, $user_info['id'], $start, $maxindex, $context['sort_by'], $sort_column, $indexOptions);
 
 		// Prepare for links to guests (for search engines)
 		$context['pageindex_multiplier'] = empty($modSettings['disableCustomPerPage']) && !empty($options['messages_per_page']) ? $options['messages_per_page'] : $modSettings['defaultMaxMessages'];
@@ -237,7 +238,7 @@ class Prefix_Controller extends Action_Controller
 			{
 				// Limit them to $modSettings['preview_characters'] characters
 				$row['first_body'] = strip_tags(strtr(parse_bbc($row['first_body'], false, $row['id_first_msg']), array('<br />' => "\n", '&nbsp;' => ' ')));
-				$row['first_body'] = shorten_text($row['first_body'], !empty($modSettings['preview_characters']) ? $modSettings['preview_characters'] : 128, true);
+				$row['first_body'] = Util::shorten_text($row['first_body'], !empty($modSettings['preview_characters']) ? $modSettings['preview_characters'] : 128, true);
 
 				// No reply then they are the same, no need to process it again
 				if ($row['num_replies'] == 0)
@@ -245,7 +246,7 @@ class Prefix_Controller extends Action_Controller
 				else
 				{
 					$row['last_body'] = strip_tags(strtr(parse_bbc($row['last_body'], false, $row['id_last_msg']), array('<br />' => "\n", '&nbsp;' => ' ')));
-					$row['last_body'] = shorten_text($row['last_body'], !empty($modSettings['preview_characters']) ? $modSettings['preview_characters'] : 128, true);
+					$row['last_body'] = Util::shorten_text($row['last_body'], !empty($modSettings['preview_characters']) ? $modSettings['preview_characters'] : 128, true);
 				}
 
 				// Censor the subject and message preview.
