@@ -12,22 +12,22 @@ global $hooks, $mod_name;
 $hooks = array(
 	array(
 		'integrate_messageindex_listing',
-		'topicprefix_showprefix',
+		'Topic_Prefix_Integrate::messageindex_listing',
 		'SUBSDIR/TopicPrefix.subs.php',
 	),
 	array(
 		'integrate_action_post_after',
-		'topicprefix_loadprefixes',
+		'Topic_Prefix_Integrate::post_after',
 		'SUBSDIR/TopicPrefix.subs.php',
 	),
 	array(
 		'integrate_create_topic',
-		'topicprefix_createtopic',
+		'Topic_Prefix_Integrate::create_topic',
 		'SUBSDIR/TopicPrefix.subs.php',
 	),
 	array(
 		'integrate_before_modify_post',
-		'topicprefix_modifytopic',
+		'Topic_Prefix_Integrate::before_modify_post',
 		'SUBSDIR/TopicPrefix.subs.php',
 	),
 );

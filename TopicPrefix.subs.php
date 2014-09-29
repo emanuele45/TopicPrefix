@@ -46,46 +46,6 @@ function topicprefix_showprefix($topicsinfo)
 		loadCSSFile('TopicPrefix.css');
 }
 
-function topicprefix_loadprefixes()
-{
-	global $context, $topic;
-
-	// This has a meaning only for first posts
-	// that means new topics or editing the first message
-	if (!$context['is_first_post'])
-		return;
-
-	// All the template stuff
-	loadTemplate('TopicPrefix');
-	loadLanguage('TopicPrefix');
-	Template_Layers::getInstance()->addAfter('pickprefix', 'postarea');
-
-	// If we are editing a message, we may want to know the old prefix
-	if (isset($_REQUEST['msg']))
-	{
-		$prefix = topicprefix_getTopicPrefixes($topic);
-	}
-
-	$context['available_prefixes'] = topicprefix_getPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null);
-}
-
-function topicprefix_createtopic($msgOptions, $topicOptions, $posterOptions)
-{
-	$prefix_id = isset($_POST['prefix']) ? (int) $_POST['prefix'] : 0;
-
-	topicprefix_updateTopicPrefix($topicOptions['id'], $prefix_id);
-}
-
-function topicprefix_modifytopic($topics_columns, $update_parameters, $msgOptions, $topicOptions, $posterOptions)
-{
-	$prefix_id = isset($_POST['prefix']) ? (int) $_POST['prefix'] : 0;
-	$msgInfo = basicMessageInfo($_REQUEST['msg'], true, true);
-
-	// Update the prefix, but only if it is the first message in the topic
-	if ($msgInfo['id_first_msg'] == $msgOptions['id'])
-		topicprefix_updateTopicPrefix($topicOptions['id'], $prefix_id);
-}
-
 function topicprefix_updateTopicPrefix($topic, $prefix_id)
 {
 	$db = database();
