@@ -13,28 +13,28 @@ $hooks = array(
 	array(
 		'integrate_messageindex_listing',
 		'Topic_Prefix_Integrate::messageindex_listing',
-		'SUBSDIR/TopicPrefix.subs.php',
+		'SUBSDIR/TopicPrefix.integrate.php',
 	),
 	array(
 		'integrate_action_post_after',
 		'Topic_Prefix_Integrate::post_after',
-		'SUBSDIR/TopicPrefix.subs.php',
+		'SUBSDIR/TopicPrefix.integrate.php',
 	),
 	array(
 		'integrate_create_topic',
 		'Topic_Prefix_Integrate::create_topic',
-		'SUBSDIR/TopicPrefix.subs.php',
+		'SUBSDIR/TopicPrefix.integrate.php',
 	),
 	array(
 		'integrate_before_modify_post',
 		'Topic_Prefix_Integrate::before_modify_post',
-		'SUBSDIR/TopicPrefix.subs.php',
+		'SUBSDIR/TopicPrefix.integrate.php',
 	),
 );
 $mod_name = 'Topics Prefix';
 
 // ---------------------------------------------------------------------------------------------------------------------
-define('SMF_INTEGRATION_SETTINGS', serialize(array(
+define('ELK_INTEGRATION_SETTINGS', serialize(array(
 	'integrate_menu_buttons' => 'install_menu_button',)));
 
 if (file_exists(dirname(__FILE__) . '/SSI.php') && !defined('ELK'))
@@ -80,7 +80,7 @@ function install_mod ()
 
 function setup_hooks ()
 {
-	global $context, $hooks, $smcFunc;
+	global $context, $hooks;
 
 	$integration_function = empty($context['uninstalling']) ? 'add_integration_function' : 'remove_integration_function';
 	foreach ($hooks as $hook)
