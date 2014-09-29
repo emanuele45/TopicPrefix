@@ -47,7 +47,7 @@ class ManagePrefix_Controller extends Action_Controller
 		loadTemplate('ManageMembergroups');
 		loadTemplate('GenericBoards');
 
-		require_once(SUBSDIR . '/TopicPrefix.subs.php');
+		require_once(SUBSDIR . '/TopicPrefix.class.php');
 		require_once(SUBSDIR . '/Boards.subs.php');
 		loadJavascriptFile('TopicPrefix.js');
 		loadCSSFile('TopicPrefix.css');
@@ -55,7 +55,8 @@ class ManagePrefix_Controller extends Action_Controller
 		$context['sub_template'] = 'manage_topicprefix';
 		$context['topicprefix_action'] = $scripturl . '?action=admin;area=postsettings;sa=prefix';
 
-		$context['topicprefix'] = topicprefix_getPrefixes();
+		$px_manager = new TopicPrefix();
+		$context['topicprefix'] = $px_manager->loadPrefixes();
 		// Get rid of the "No prefix" psuedo-prefix.
 		if (isset($context['topicprefix'][0]))
 			unset($context['topicprefix'][0]);
