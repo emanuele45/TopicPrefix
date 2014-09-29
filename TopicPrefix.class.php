@@ -13,6 +13,9 @@ if (!defined('ELK'))
 
 class TopicPrefix
 {
+	protected $_currentTopics = null;
+	protected $_prefixes = array();
+
 	public function loadAll()
 	{
 		global $context, $topic, $board;
@@ -146,9 +149,6 @@ class TopicPrefix
 				'text' => $row['prefix'],
 				'id_boards' => $id_boards,
 			);
-
-			if ($default == $row['id_prefix'])
-				$prefixes[0]['selected'] = false;
 		}
 		$db->free_result($request);
 
@@ -369,7 +369,7 @@ class TopicPrefix
 
 	}
 
-	function getAllPrefixes($start, $limit, $sort, $sort_dir)
+	public function getAllPrefixes($start, $limit, $sort, $sort_dir)
 	{
 		$db = database();
 
@@ -398,7 +398,7 @@ class TopicPrefix
 		return $return;
 	}
 
-	function countAllPrefixes()
+	public function countAllPrefixes()
 	{
 		$db = database();
 
