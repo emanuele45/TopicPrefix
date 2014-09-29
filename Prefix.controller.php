@@ -63,7 +63,7 @@ class Prefix_Controller extends Action_Controller
 
 		$this->_base_linktree();
 		$context['prefixes'] = topicprefix_getAllPrefixes($start, $limit, $sort, 'DESC');
-		$num_prefixes = topicprefix_counAllPrefixes();
+		$num_prefixes = topicprefix_countAllPrefixes();
 		foreach ($context['prefixes'] as $prefix_id => $prefix)
 		{
 			$context['prefixes'][$prefix_id] += array(
@@ -73,9 +73,11 @@ class Prefix_Controller extends Action_Controller
 		}
 
 		if (isset($_GET['sort']))
-			$context['page_index'] = constructPageIndex($scripturl . '?action=prefix;sa=prefixlist;sort=' . $_GET['sort'] . (isset($_GET['desc']) ? ';desc' : ''), $_GET['start'], $num_prefixes, $limit, true);
+			$sort_string = ';sort=' . $_GET['sort'] . (isset($_GET['desc']) ? ';desc' : '');
 		else
-			$context['page_index'] = constructPageIndex($scripturl . '?action=prefix;sa=prefixlist;', $_GET['start'], $num_prefixes, $limit, true);
+			$sort_string = '';
+
+		$context['page_index'] = constructPageIndex($scripturl . '?action=prefix;sa=prefixlist' . $sort_string, $_GET['start'], $num_prefixes, $limit, true);
 	}
 
 	/**

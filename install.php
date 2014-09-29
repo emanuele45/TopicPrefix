@@ -30,6 +30,16 @@ $hooks = array(
 		'Topic_Prefix_Integrate::before_modify_post',
 		'SUBSDIR/TopicPrefix.integrate.php',
 	),
+	array(
+		'integrate_admin_areas',
+		'TopicPrefix::admin_areas',
+		'SUBSDIR/TopicPrefix.integrate.php',
+	),
+	array(
+		'integrate_sa_manage_posts',
+		'TopicPrefix::sa_manage_posts',
+		'SUBSDIR/TopicPrefix.integrate.php',
+	),
 );
 $mod_name = 'Topics Prefix';
 
@@ -129,6 +139,10 @@ function setup_hooks ()
 						'type' => 'varchar',
 						'size' => 30,
 						'default' => ''
+				),
+				array(
+						'name' => 'id_boards',
+						'type' => 'text'
 				),
 			),
 			array(

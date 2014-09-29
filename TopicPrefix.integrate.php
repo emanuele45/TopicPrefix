@@ -61,4 +61,24 @@ class Topic_Prefix_Integrate
 			topicprefix_updateTopicPrefix($topicOptions['id'], $prefix_id);
 		}
 	}
+
+	public static function admin_areas(&$admin_areas, &$menuOptions)
+	{
+		global $txt;
+
+		loadLanguage('TopicPrefix');
+		$admin_areas['layout']['areas']['postsettings']['subsections']['prefix'] = array($txt['topicprefix_pickprefixes'], 'manage_prefixes');
+	}
+
+	public static function sa_manage_posts(&$subActions)
+	{
+		global $txt;
+
+		$subActions['prefix'] = array(
+			'function' => 'action_index',
+			'file' => 'ManagePrefix.controller.php',
+			'controller' => 'ManagePrefix_Controller',
+			'permission' => 'manage_prefixes'
+		);
+	}
 }

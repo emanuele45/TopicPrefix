@@ -116,30 +116,64 @@ function topicprefix_updateTopicPrefix($topic, $prefix_id)
 	}
 }
 
-function topicprefix_getPrefixes($default = null)
+function topicprefix_getPrefixes($default = null, $board = null)
 {
 	global $txt;
 
 	$db = database();
+	$boards = (array) $board;
+	$boards_used = array();
 
 	$request = $db->query('', '
-		SELECT id_prefix, prefix
+		SELECT id_prefix, prefix, id_boards
 		FROM {db_prefix}topic_prefix_text',
 		array()
 	);
 
 	$prefixes = array(0 => array(
 		'selected' => true,
-		'text' => $txt['topicprefix_noprefix']
+		'text' => $txt['topicprefix_noprefix'],
+		'id_boards' => array(),
 	));
 	while ($row = $db->fetch_assoc($request))
 	{
-		$prefixes[$row['id_prefix']] =array('selected' => $default == $row['id_prefix'], 'text' => $row['prefix']);
+		$id_boards = array();
+		if (!empty($row['id_boards']))
+		{
+			// I could use find_in_set, but I may also change my mind later...
+			$id_boards = explode(',', $row['id_boards']);
+			if (!empty($boards) && count(array_intersect($boards, $id_boards)) == 0)
+				continue;
+
+			$boards_used = array_unique(array_merge($boards_used, $id_boards));
+		}
+
+		$prefixes[$row['id_prefix']] = array(
+			'selected' => $default == $row['id_prefix'],
+			'text' => $row['prefix'],
+			'id_boards' => $id_boards,
+		);
 
 		if ($default == $row['id_prefix'])
 			$prefixes[0]['selected'] = false;
 	}
 	$db->free_result($request);
+
+	if ($board === null && !empty($boards_used))
+	{
+		require_once(SUBSDIR . '/Boards.subs.php');
+		$boardsdetail = fetchBoardsInfo(array('boards' => $boards_used));
+
+		foreach ($prefixes as $key => $value)
+		{
+			$bdet = array();
+			foreach ($value['id_boards'] as $id)
+			{
+				$bdet[] = $boardsdetail[$id];
+			}
+			$prefixes[$key]['boards'] = $bdet;
+		}
+	}
 
 	return $prefixes;
 }
@@ -149,6 +183,9 @@ function topicprefix_getTopicPrefixes($topics)
 	$db = database();
 
 	$is_array = is_array($topics);
+	if (empty($topics))
+		return array();
+
 	if (!$is_array)
 		$topics = array($topics);
 
@@ -331,7 +368,7 @@ function topicprefix_getAllPrefixes($start, $limit, $sort, $sort_dir)
 	return $return;
 }
 
-function topicprefix_counAllPrefixes()
+function topicprefix_countAllPrefixes()
 {
 	$db = database();
 
