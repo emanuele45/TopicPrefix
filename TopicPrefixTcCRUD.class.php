@@ -44,7 +44,7 @@ class TopicPrefix_TcCRUD
 		return $this->delete('prefix', (int) $topic);
 	}
 
-	public function deleteTopicPrefix($topic, $prefix)
+	public function deleteByTopicPrefix($topic, $prefix)
 	{
 		return $this->db->query('topic_prefix', array('id_topic' => (int) $topic, 'id_prefix' => (int) $prefix));
 	}

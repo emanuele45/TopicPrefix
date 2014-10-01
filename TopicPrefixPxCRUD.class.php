@@ -160,8 +160,9 @@ class TopicPrefix_PxCRUD
 			FROM {db_prefix}topic_prefix_text', $type, $value);
 
 		$return = array();
-		while ($row = $this->db->fetch_assoc($request));
+		while ($row = $this->db->fetch_assoc($request))
 			$return[] = $row;
+
 		$this->db->free_result($request);
 
 		return $return;
