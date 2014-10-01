@@ -70,14 +70,14 @@ class TopicPrefix_TcCRUD
 		return $this->result($result);
 	}
 
-	public function updatePrefixTopic($id_topic, $id_prefix = null)
+	public function updateByPrefixTopic($id_topic, $id_prefix = null)
 	{
 		$current = $this->getByTopic($id_topic);
 
 		// If the prefix is empty, just cleanup any potential mess and live happy!
 		if (empty($id_prefix))
 		{
-			return $this->deleteTopicPrefix($id_topic, $current);
+			return $this->deleteByTopicPrefix($id_topic, $current);
 		}
 
 		// If the record doesn't exist it's time to create it
@@ -132,7 +132,7 @@ class TopicPrefix_TcCRUD
 			FROM {db_prefix}topic_prefix', $type, $value);
 
 		$return = array();
-		while ($row = $this->db->fetch_assoc($request));
+		while ($row = $this->db->fetch_assoc($request))
 			$return[] = $row;
 		$this->db->free_result($request);
 
