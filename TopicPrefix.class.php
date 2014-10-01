@@ -41,9 +41,8 @@ class TopicPrefix
 
 	public function updateTopicPrefix($topic, $prefix_id)
 	{
-		require_once(SUBSDIR . '/TopicPrefixTcCRUD.class.php');
 		$tcm = new TopicPrefix_TcCRUD();
-		$tcm->updatePrefixTopic($topic, $prefix_id);
+		$tcm->updateByPrefixTopic($topic, $prefix_id);
 	}
 
 	public function loadPrefixes($default = null, $board = null)
@@ -56,7 +55,6 @@ class TopicPrefix
 		if ($this->_currentTopics !== null)
 			$this->_getTopicPrefixes();
 
-		require_once(SUBSDIR . '/TopicPrefixPxCRUD.class.php');
 		$pxm = new TopicPrefix_PxCRUD();
 		$px = $pxm->getAll();
 
@@ -156,7 +154,6 @@ class TopicPrefix
 		if (empty($this->_currentTopics))
 			return array();
 
-		require_once(SUBSDIR . '/TopicPrefixTcCRUD.class.php');
 		$tcm = new TopicPrefix_TcCRUD();
 		$this->_prefixes = $tcm->getByTopic($this->_currentTopics);
 	}
@@ -165,7 +162,6 @@ class TopicPrefix
 	{
 		$db = database();
 
-		require_once(SUBSDIR . '/TopicPrefixPxCRUD.class.php');
 		$pxm = new TopicPrefix_PxCRUD();
 		$pxd = $pxm->getById($prefix_id);
 		$text = $pxd['prefix'];
@@ -174,7 +170,6 @@ class TopicPrefix
 		if (empty($text) && $text == '')
 			return false;
 
-		require_once(SUBSDIR . '/TopicPrefixTcCRUD.class.php');
 		$tcm = new TopicPrefix_TcCRUD();
 		$count = $tcm->countByPrefix($prefix_id);
 
@@ -308,7 +303,6 @@ class TopicPrefix
 
 	public function countAllPrefixes()
 	{
-		require_once(SUBSDIR . '/TopicPrefixPxCRUD.class.php');
 		$pxm = new TopicPrefix_PxCRUD();
 
 		return $pxm->countAll();

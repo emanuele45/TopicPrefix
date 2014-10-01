@@ -9,8 +9,23 @@
  * @version 0.0.1
  */
 
+spl_autoload_register(array('Topic_Prefix_Integrate', 'autoload'));
+
 class Topic_Prefix_Integrate
 {
+	public static function autoload($class)
+	{
+		switch ($class)
+		{
+			case 'TopicPrefix_TcCRUD':
+				require_once(SUBSDIR . '/TopicPrefixTcCRUD.class.php');
+				break;
+			case 'TopicPrefix_PxCRUD':
+				require_once(SUBSDIR . '/TopicPrefixPxCRUD.class.php');
+				break;
+		}
+	}
+
 	public static function messageindex_listing($topicsinfo)
 	{
 		require_once(SUBSDIR . '/TopicPrefix.subs.php');
