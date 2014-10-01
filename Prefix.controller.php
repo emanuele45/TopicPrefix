@@ -21,6 +21,9 @@
 if (!defined('ELK'))
 	die('No access...');
 
+require_once(SUBSDIR . '/TopicPrefix.integrate.php');
+spl_autoload_register(array('Topic_Prefix_Integrate', 'autoload'));
+
 class Prefix_Controller extends Action_Controller
 {
 

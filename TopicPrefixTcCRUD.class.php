@@ -46,7 +46,7 @@ class TopicPrefix_TcCRUD
 
 	public function deleteByTopicPrefix($topic, $prefix)
 	{
-		return $this->db->query('topic_prefix', array('id_topic' => (int) $topic, 'id_prefix' => (int) $prefix));
+		return $this->delete('topic_prefix', array('id_topic' => (int) $topic, 'id_prefix' => (int) $prefix));
 	}
 
 	public function getByTopic($topic)
@@ -101,9 +101,9 @@ class TopicPrefix_TcCRUD
 	protected function count($type, $value)
 	{
 		$request = $this->runQuery('
-			COUNT (*)
+			SELECT COUNT(*)
 			FROM {db_prefix}topic_prefix', $type, $value);
-		list ($num) = $this->db->num_rows($request);
+		list ($num) = $this->db->fetch_row($request);
 		$this->db->free_result($request);
 
 		return $num;
@@ -199,7 +199,7 @@ class TopicPrefix_TcCRUD
 
 	protected function singleRes($result)
 	{
-		if (count($result) > 1)
+		if (count($result) !== 1)
 			return $result;
 		else
 			return $result[0];

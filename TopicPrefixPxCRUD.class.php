@@ -101,9 +101,9 @@ class TopicPrefix_PxCRUD
 	protected function count($type, $value)
 	{
 		$request = $this->runQuery('
-			COUNT (*)
+			SELECT COUNT(*)
 			FROM {db_prefix}topic_prefix_text', $type, $value);
-		list ($num) = $this->db->num_rows($request);
+		list ($num) = $this->db->fetch_row($request);
 		$this->db->free_result($request);
 
 		return $num;
