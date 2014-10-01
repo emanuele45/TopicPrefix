@@ -49,23 +49,26 @@ class TopicPrefix_TcCRUD
 		return $this->delete('topic_prefix', array('id_topic' => (int) $topic, 'id_prefix' => (int) $prefix));
 	}
 
-	public function getByTopic($topic)
+	public function getByTopic($topic, $what = 'id')
 	{
-		$result = $this->read('topic', (int) $topic);
+		$method = $this->method($what);
+		$result = $this->{$method}('topic', $topic);
 
 		return $this->result($result, 'id_topic');
 	}
 
-	public function getByPrefix($prefix)
+	public function getByPrefix($prefix, $what = 'id')
 	{
-		$result = $this->read('topic_prefix', (int) $prefix);
+		$method = $this->method($what);
+		$result = $this->{$method}('topic_prefix', (int) $prefix);
 
 		return $this->result($result);
 	}
 
-	public function getByTopicPrefix($topic, $prefix)
+	public function getByTopicPrefix($topic, $prefix, $what = 'id')
 	{
-		$result = $this->read('topic_prefix', array('id_topic' => (int) $topic, 'id_prefix' => (int) $prefix));
+		$method = $this->method($what);
+		$result = $this->{$method}('topic_prefix', array('id_topic' => (int) $topic, 'id_prefix' => (int) $prefix));
 
 		return $this->result($result);
 	}
@@ -96,6 +99,14 @@ class TopicPrefix_TcCRUD
 	public function countByPrefix($id_prefix)
 	{
 		return $this->count('prefix', (int) $id_prefix);
+	}
+
+	protected function method($what)
+	{
+		if ($what === 'id')
+			return 'read';
+		else
+			return 'load';
 	}
 
 	protected function count($type, $value)
@@ -134,6 +145,22 @@ class TopicPrefix_TcCRUD
 		$return = array();
 		while ($row = $this->db->fetch_assoc($request))
 			$return[] = $row;
+		$this->db->free_result($request);
+
+		return $return;
+	}
+
+	protected function load($type, $value)
+	{
+		$request = $this->runQuery('
+			SELECT p.id_topic, p.id_prefix, pt.prefix
+			FROM {db_prefix}topic_prefix AS p
+				LEFT JOIN {db_prefix}topic_prefix_text AS pt ON (p.id_prefix = pt.id_prefix)', $type, $value);
+
+		$return = array();
+		while ($row = $this->db->fetch_assoc($request))
+			$return[] = $row;
+
 		$this->db->free_result($request);
 
 		return $return;

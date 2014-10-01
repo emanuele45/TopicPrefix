@@ -16,6 +16,17 @@ class TopicPrefix
 	protected $_currentTopics = null;
 	protected $_prefixes = array();
 
+	public function __get($method)
+	{
+		switch ($method)
+		{
+			case 'pm':
+				return new TopicPrefix_PxCRUD();
+			case 'tm':
+				return new TopicPrefix_TcCRUD();
+		}
+	}
+
 	public function loadAll()
 	{
 		global $context, $topic, $board;
@@ -41,8 +52,7 @@ class TopicPrefix
 
 	public function updateTopicPrefix($topic, $prefix_id)
 	{
-		$tcm = new TopicPrefix_TcCRUD();
-		$tcm->updateByPrefixTopic($topic, $prefix_id);
+		$this->tm->updateByPrefixTopic($topic, $prefix_id);
 	}
 
 	public function loadPrefixes($default = null, $board = null)
@@ -53,10 +63,9 @@ class TopicPrefix
 		$boards_used = array();
 
 		if ($this->_currentTopics !== null)
-			$this->_getTopicPrefixes();
+			$this->_prefixes = $this->tm->getByTopic($this->_currentTopics);
 
-		$pxm = new TopicPrefix_PxCRUD();
-		$px = $pxm->getAll();
+		$px = $this->pm->getAll();
 
 		$prefixes = array(0 => array(
 			'selected' => true,
@@ -117,8 +126,6 @@ class TopicPrefix
 
 	public function getTopicPrefixes($topics)
 	{
-		$db = database();
-
 		$is_array = is_array($topics);
 		if (empty($topics))
 			return array();
@@ -126,20 +133,7 @@ class TopicPrefix
 		if (!$is_array)
 			$topics = array($topics);
 
-		$request = $db->query('', '
-			SELECT p.id_topic, p.id_prefix, pt.prefix
-			FROM {db_prefix}topic_prefix AS p
-				LEFT JOIN {db_prefix}topic_prefix_text AS pt ON (p.id_prefix = pt.id_prefix)
-			WHERE p.id_topic IN ({array_int:topics})',
-			array(
-				'topics' => $topics,
-			)
-		);
-
-		$prefixes = array();
-		while ($row = $db->fetch_assoc($request))
-			$prefixes[$row['id_topic']] = $row;
-		$db->free_result($request);
+		$prefixes = $this->tm->getByTopic($topics, 'load');
 
 		if ($is_array)
 			return $prefixes;
@@ -147,31 +141,16 @@ class TopicPrefix
 			return array_shift($prefixes);
 	}
 
-	protected function _getTopicPrefixes()
-	{
-		$db = database();
-
-		if (empty($this->_currentTopics))
-			return array();
-
-		$tcm = new TopicPrefix_TcCRUD();
-		$this->_prefixes = $tcm->getByTopic($this->_currentTopics);
-	}
-
 	public function getPrefixDetails($prefix_id)
 	{
-		$db = database();
-
-		$pxm = new TopicPrefix_PxCRUD();
-		$pxd = $pxm->getById($prefix_id);
+		$pxd = $this->pm->getById($prefix_id);
 		$text = $pxd['prefix'];
 
 		// An empty prefix cannot exists (well, a prefix 0 could), so out of here!
 		if (empty($text) && $text == '')
 			return false;
 
-		$tcm = new TopicPrefix_TcCRUD();
-		$count = $tcm->countByPrefix($prefix_id);
+		$count = $this->tm->countByPrefix($prefix_id);
 
 		return array('text' => $text, 'count' => $count);
 	}
@@ -303,8 +282,6 @@ class TopicPrefix
 
 	public function countAllPrefixes()
 	{
-		$pxm = new TopicPrefix_PxCRUD();
-
-		return $pxm->countAll();
+		return $this->pm->countAll();
 	}
 }
