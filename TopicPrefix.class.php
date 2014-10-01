@@ -41,97 +41,31 @@ class TopicPrefix
 
 	public function updateTopicPrefix($topic, $prefix_id)
 	{
-		$db = database();
-
-		$request = $db->query('', '
-			SELECT id_prefix
-			FROM {db_prefix}topic_prefix
-			WHERE id_topic = {int:this_topic}',
-			array(
-				'this_topic' => $topic,
-			)
-		);
-		// @todo in order to support multi-prefix this should be expanded
-		list ($current_prefix) = $db->fetch_row($request);
-		$db->free_result($request);
-
-
-		// If the prefix is empty, just cleanup any potential mess and live happy!
-		if (empty($prefix_id))
-		{
-			$db->query('', '
-				DELETE FROM {db_prefix}topic_prefix
-				WHERE id_topic = {int:this_topic}
-					AND id_prefix = {int:this_prefix}',
-				array(
-					'this_topic' => $topic,
-					'this_prefix' => $current_prefix,
-				)
-			);
-
-			return;
-		}
-
-		// If the record doesn't exist it's time to create it
-		if ($db->num_rows($request) == 0)
-		{
-			$db->insert('',
-				'{db_prefix}topic_prefix',
-				array(
-					'id_prefix' => 'int',
-					'id_topic' => 'int',
-				),
-				array(
-					$prefix_id,
-					$topic
-				),
-				array('id_prefix', 'id_topic')
-			);
-		}
-		// If we already have one, then we have to change it
-		// (provided the new one is different)
-		else
-		{
-			if ($current_prefix != $prefix_id)
-			{
-				$db->query('', '
-					UPDATE {db_prefix}topic_prefix
-					SET id_prefix = {int:new_prefix}
-					WHERE id_topic = {int:this_topic}
-						AND id_prefix = {int:this_prefix}',
-					array(
-						'this_topic' => $topic,
-						'this_prefix' => $current_prefix,
-						'new_prefix' => $prefix_id,
-					)
-				);
-			}
-		}
+		require_once(SUBSDIR . '/TopicPrefixTcCRUD.class.php');
+		$tcm = new TopicPrefix_TcCRUD();
+		$tcm->updatePrefixTopic($topic, $prefix_id);
 	}
 
-	public function loadPrefixes($board = null)
+	public function loadPrefixes($default = null, $board = null)
 	{
 		global $txt;
 
-		$db = database();
 		$boards = (array) $board;
 		$boards_used = array();
 
 		if ($this->_currentTopics !== null)
 			$this->_getTopicPrefixes();
 
-		$request = $db->query('', '
-			SELECT id_prefix, prefix, id_boards
-			FROM {db_prefix}topic_prefix_text',
-			array()
-		);
+		require_once(SUBSDIR . '/TopicPrefixPxCRUD.class.php');
+		$pxm = new TopicPrefix_PxCRUD();
+		$px = $pxm->getAll();
 
 		$prefixes = array(0 => array(
 			'selected' => true,
 			'text' => $txt['topicprefix_noprefix'],
 			'id_boards' => array(),
 		));
-		while ($row = $db->fetch_assoc($request))
+		foreach ($px as $row)
 		{
 			$id_boards = array();
 			if (!empty($row['id_boards']))
@@ -149,8 +83,10 @@ class TopicPrefix
 				'text' => $row['prefix'],
 				'id_boards' => $id_boards,
 			);
+
+			if ($default == $row['id_prefix'])
+				$prefixes[0]['selected'] = false;
 		}
-		$db->free_result($request);
 
 		if ($board === null && !empty($boards_used))
 		{
@@ -220,55 +156,27 @@ class TopicPrefix
 		if (empty($this->_currentTopics))
 			return array();
 
-		$request = $db->query('', '
-			SELECT id_topic, id_prefix
-			FROM {db_prefix}topic_prefix
-			WHERE id_topic IN ({array_int:topics})',
-			array(
-				'topics' => $this->_currentTopics,
-			)
-		);
-
-		$this->_prefixes = array();
-		while ($row = $db->fetch_assoc($request))
-		{
-			if (!isset($this->_prefixes[$row['id_topic']]))
-				$this->_prefixes[$row['id_topic']] = array();
-
-			$this->_prefixes[$row['id_topic']][] = $row['id_prefix'];
-		}
-		$db->free_result($request);
+		require_once(SUBSDIR . '/TopicPrefixTcCRUD.class.php');
+		$tcm = new TopicPrefix_TcCRUD();
+		$this->_prefixes = $tcm->getByTopic($this->_currentTopics);
 	}
 
 	public function getPrefixDetails($prefix_id)
 	{
 		$db = database();
 
-		$request = $db->query('', '
-			SELECT prefix
-			FROM {db_prefix}topic_prefix_text
-			WHERE id_prefix = {int:prefix}',
-			array(
-				'prefix' => $prefix_id
-			)
-		);
-		list ($text) = $db->fetch_row($request);
-		$db->free_result($request);
+		require_once(SUBSDIR . '/TopicPrefixPxCRUD.class.php');
+		$pxm = new TopicPrefix_PxCRUD();
+		$pxd = $pxm->getById($prefix_id);
+		$text = $pxd['prefix'];
 
 		// An empty prefix cannot exists (well, a prefix 0 could), so out of here!
 		if (empty($text) && $text == '')
 			return false;
 
-		$request = $db->query('', '
-			SELECT COUNT(*)
-			FROM {db_prefix}topic_prefix
-			WHERE id_prefix = {int:prefix}',
-			array(
-				'prefix' => $prefix_id
-			)
-		);
-		list ($count) = $db->fetch_row($request);
-		$db->free_result($request);
+		require_once(SUBSDIR . '/TopicPrefixTcCRUD.class.php');
+		$tcm = new TopicPrefix_TcCRUD();
+		$count = $tcm->countByPrefix($prefix_id);
 
 		return array('text' => $text, 'count' => $count);
 	}
@@ -400,16 +308,9 @@ class TopicPrefix
 
 	public function countAllPrefixes()
 	{
-		$db = database();
+		require_once(SUBSDIR . '/TopicPrefixPxCRUD.class.php');
+		$pxm = new TopicPrefix_PxCRUD();
 
-		$request = $db->query('', '
-			SELECT COUNT(*)
-			FROM {db_prefix}topic_prefix_text',
-			array()
-		);
-		list ($count) = $db->num_rows($request);
-		$db->free_result($request);
-
-		return $count;
+		return $pxm->countAll();
 	}
 }
