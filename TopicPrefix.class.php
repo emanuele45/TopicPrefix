@@ -72,6 +72,7 @@ class TopicPrefix
 			'text' => $txt['topicprefix_noprefix'],
 			'id_boards' => array(),
 		));
+
 		foreach ($px as $row)
 		{
 			$id_boards = array();

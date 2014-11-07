@@ -34,7 +34,7 @@ class Topic_Prefix_Integrate
 
 	public static function post_after()
 	{
-		global $context, $topic;
+		global $context, $topic, $board;
 
 		// This has a meaning only for first posts
 		// that means new topics or editing the first message
@@ -54,7 +54,10 @@ class Topic_Prefix_Integrate
 			$prefix = $px_manager->getTopicPrefixes($topic);
 		}
 
-		$context['available_prefixes'] = $px_manager->loadPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null);
+		$available_prefixes = $px_manager->loadPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null, $board);
+
+		if (count($available_prefixes) > 1)
+			$context['available_prefixes'] = $available_prefixes;
 	}
 
 	public static function create_topic($msgOptions, $topicOptions, $posterOptions)
