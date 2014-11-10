@@ -79,15 +79,16 @@ class TopicPrefix
 		foreach ($px as $row)
 		{
 			$id_boards = array();
-			if (!empty($row['id_boards']))
-			{
-				// I could use find_in_set, but I may also change my mind later...
-				$id_boards = explode(',', $row['id_boards']);
-				if (!empty($boards) && count(array_intersect($boards, $id_boards)) == 0)
-					continue;
+			if (empty($row['id_boards']))
+				continue;
 
-				$boards_used = array_unique(array_merge($boards_used, $id_boards));
-			}
+			// I could use find_in_set, but I may also change my mind later...
+			$id_boards = explode(',', $row['id_boards']);
+
+			if (!empty($boards) && count(array_intersect($boards, $id_boards)) == 0)
+				continue;
+
+			$boards_used = array_unique(array_merge($boards_used, $id_boards));
 
 			$prefixes[$row['id_prefix']] = array(
 				'selected' => in_array($row['id_prefix'], $this->_prefixes),
