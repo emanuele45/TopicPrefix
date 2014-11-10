@@ -3,30 +3,44 @@
 <package-info xmlns="http://www.elkarte.net/site/package-info" xmlns:elk="http://www.elkarte.net/">
 	<license><![CDATA[
 /**
- * Image Lazy Loading
+ * Topics Prefix
  *
  * @author  emanuele
  * @license BSD http://opensource.org/licenses/BSD-3-Clause
  *
- * @version 0.0.2
+ * @version 0.0.1
  */
 	]]></license>
-	<id>emanuele:img_lazyload</id>
-	<name>Lazy loading of images</name>
-	<version>0.0.2</version>
+	<id>emanuele:TopicsPrefix</id>
+	<name>Topics Prefix</name>
+	<version>0.0.1</version>
 	<type>modification</type>
-	<install for="1.0 beta 2, 1.0 RC 1, 1.0 - 1.0.99">
-		<require-file name="LazyLoad.subs.php" destination="SUBSDIR" />
-		<require-file name="jquery.lazyload.min.js" destination="THEMEDIR/scripts" />
-		<hook hook="integrate_buffer" function="img_lazy_loading_buffer" />
-		<hook hook="integrate_load_theme" file="SOURCEDIR/subs/LazyLoad.subs.php" function="img_lazy_loading_scripts" />
-		<hook hook="integrate_credits" file="SOURCEDIR/subs/LazyLoad.subs.php" function="img_lazy_loading_credits" />
+	<install for="1.0 - 1.0.99">
+		<require-file name="TopicPrefix.integrate.php" destination="SOURCEDIR" />
+		<require-file name="ManagePrefix.controller.php" destination="ADMINDIR" />
+		<require-file name="Prefix.controller.php" destination="CONTROLLERDIR" />
+		<require-file name="TopicPrefix.class.php" destination="SUBSDIR" />
+		<require-file name="TopicPrefixPxCRUD.class.php" destination="SUBSDIR" />
+		<require-file name="TopicPrefixTcCRUD.class.php" destination="SUBSDIR" />
+		<require-file name="TopicPrefix.subs.php" destination="SUBSDIR" />
+		<require-file name="TopicPrefix.english.php" destination="LANGUAGEDIR/english" />
+		<require-file name="TopicPrefix.template.php" destination="THEMEDIR" />
+		<require-file name="TopicPrefix.js" destination="THEMEDIR/scripts" />
+		<require-file name="TopicPrefix.css" destination="THEMEDIR/css" />
+		<code>install.php</code>
 	</install>
-	<uninstall for="1.0 beta 2, 1.0 RC 1, 1.0 - 1.0.99">
-		<remove-file name="SUBSDIR/LazyLoad.subs.php" />
-		<remove-file name="THEMEDIR/scripts/jquery.lazyload.min.js" />
-		<hook reverse="true" hook="integrate_buffer" function="img_lazy_loading_buffer" />
-		<hook reverse="true" hook="integrate_load_theme" file="SOURCEDIR/subs/LazyLoad.subs.php" function="img_lazy_loading_scripts" />
-		<hook reverse="true" hook="integrate_credits" file="SOURCEDIR/subs/LazyLoad.subs.php" function="img_lazy_loading_credits" />
+	<uninstall for="1.0 - 1.0.99">
+		<remove-file name="SOURCEDIR/TopicPrefix.integrate.php" />
+		<remove-file name="ADMINDIR/ManagePrefix.controller.php" />
+		<remove-file name="CONTROLLERDIR/Prefix.controller.php" />
+		<remove-file name="SUBSDIR/TopicPrefix.class.php" />
+		<remove-file name="SUBSDIR/TopicPrefixPxCRUD.class.php" />
+		<remove-file name="SUBSDIR/TopicPrefixTcCRUD.class.php" />
+		<remove-file name="SUBSDIR/TopicPrefix.subs.php" />
+		<remove-file name="LANGUAGEDIR/english/TopicPrefix.english.php" />
+		<remove-file name="THEMEDIR/TopicPrefix.template.php" />
+		<remove-file name="THEMEDIR/scripts/TopicPrefix.js" />
+		<remove-file name="THEMEDIR/css/TopicPrefix.css" />
+		<code>install.php</code>
 	</uninstall>
 </package-info>
