@@ -23,7 +23,7 @@ $txt['topicprefix_yourstylehere'] = 'Your style here';
 $txt['topicprefix_style'] = 'Style to apply to the current default theme:';
 $txt['topicprefix_style_desc'] = 'Or add the code to the custom.css of your theme/s. If you are creating a new tag, please note the ID (the number after ".prefix_id_") may differ from the one that will be actually used, check back when you have finished to create the prefix for the correct CSS class name.';
 
-$txt['topicprefix_prefix_text'] = 'All boards';
+$txt['topicprefix_prefix_text'] = 'Prefix texts';
 $txt['all_boards'] = 'All boards';
 $txt['no_boards'] = 'Not used in any board';
 $txt['add_new'] = 'Add new';
