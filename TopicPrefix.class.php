@@ -75,6 +75,8 @@ class TopicPrefix
 				'id_boards' => array(),
 			));
 		}
+		else
+			$prefixes = array();
 
 		foreach ($px as $row)
 		{
