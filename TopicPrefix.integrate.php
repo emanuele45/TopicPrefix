@@ -35,6 +35,22 @@ class Topic_Prefix_Integrate
 		topicprefix_showprefix($topicsinfo);
 	}
 
+	public static function display_message_list()
+	{
+		global $context, $topic, $txt;
+
+		$px_manager = new TopicPrefix();
+		$prefixes = $px_manager->getTopicPrefixes(array($topic));
+
+		if (!empty($prefixes))
+		{
+			require_once(SUBSDIR . '/TopicPrefix.subs.php');
+			loadCSSFile('TopicPrefix.css');
+			loadLanguage('TopicPrefix');
+			$context['num_views_text'] = sprintf($txt['topicprefix_linktree'], topicprefix_prefix_marktup($prefixes[$topic])) . ' ' . $context['num_views_text'];
+		}
+	}
+
 	public static function post_after()
 	{
 		global $context, $topic, $board;
