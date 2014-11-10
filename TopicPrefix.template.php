@@ -51,17 +51,21 @@ function template_manage_topicprefix()
 				<div class="windowbg2">
 					<div class="content">
 						<dl class="settings">
-							<dt>prefix</dt><dd>' . $txt['choose_board'] . '</dd>';
+							<dt>', $txt['topicprefix_prefix_text'], '</dt><dd>' . $txt['choose_board'] . '</dd>';
 
 	$deny_boards_access = $modSettings['deny_boards_access'];
 	$modSettings['deny_boards_access'] = false;
 	foreach ($context['topicprefix'] as $prefix_id => $prefix)
 	{
 		echo '
-							<dt><input type="text" name="prefix[', $prefix_id, ']" value="', $prefix['text'], '" /></dt>
+							<dt>
+								<input disabled type="text" name="prefix[', $prefix_id, ']" value="', $prefix['text'], '" />
+								<a class="edit linkbutton" href="', $prefix['edit_url'], '">', $txt['edit'], '</a>
+							</dt>
 							<dd>';
+
 		if (empty($prefix['boards']))
-			echo 'all boards';
+			echo $txt['no_boards'];
 		else
 		{
 			$count = count($prefix['boards']);
@@ -72,16 +76,54 @@ function template_manage_topicprefix()
 				echo $board['name'], $count == $pos ? '' : ', ';
 			}
 		}
-
-		echo ' <a href="#">change</a>
+		echo '
 							</dd>';
 	}
 	$modSettings['deny_boards_access'] = $deny_boards_access;
 
 	echo '
+							<dt>
+								<a class="edit linkbutton" href="', $context['topicprefix_addnew_url'], '">', $txt['add_new'], '</a>
+							</dt><dd></dd>
 						</dl>
 					</div>
 				</div>
+			</form>
+		</div>';
+}
+
+function template_prefixeditboards()
+{
+	global $context, $txt, $modSettings;
+
+	echo '
+		<div class="managetopicprefix" id="admincenter">
+			<form id="admin_form_wrapper" name="editprefix" action="', $context['topicprefix_action'], '" method="post" accept-charset="UTF-8">
+				<h3 class="category_header">', $txt['topicprefix_manage_header'], '</h3>
+				<div class="windowbg2">
+					<div class="content">
+					 <dl class="settings">
+							<dt>', $txt['topicprefix_change_text'], '</dt>
+							<dd>
+								<input type="text" name="prefix_name" value="', $context['topicprefix']['text'], '" />
+							</dd>
+							<dt>', $txt['topicprefix_style'], '<br />
+							<span class="smalltext">', $txt['topicprefix_style_desc'], '</span></dt>
+							<dd>
+								<textarea name="prefix_style">', $context['topicprefix']['style'], '</textarea>
+							</dd>
+						</dl>
+						<fieldset id="pick_boards">';
+
+	template_pick_boards('editprefix', 'brd', true);
+
+	echo '
+						</fieldset>
+						<input type="submit" value="', $txt['save'], '" class="right_submit" />
+					</div>
+				</div>
+				<input type="hidden" name="', $context['admin-editprefix_token_var'], '" value="', $context['admin-editprefix_token'], '" />
+				<input type="hidden" name="', $context['session_var'], '" value="', $context['session_id'], '" />
 			</form>
 		</div>';
 }

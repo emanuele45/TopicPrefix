@@ -17,6 +17,9 @@ class Topic_Prefix_Integrate
 	{
 		switch ($class)
 		{
+			case 'TopicPrefix':
+				require_once(SUBSDIR . '/TopicPrefix.class.php');
+				break;
 			case 'TopicPrefix_TcCRUD':
 				require_once(SUBSDIR . '/TopicPrefixTcCRUD.class.php');
 				break;
@@ -45,7 +48,7 @@ class Topic_Prefix_Integrate
 		loadTemplate('TopicPrefix');
 		loadLanguage('TopicPrefix');
 		Template_Layers::getInstance()->addAfter('pickprefix', 'postarea');
-		require_once(SUBSDIR . '/TopicPrefix.class.php');
+
 		$px_manager = new TopicPrefix();
 
 		// If we are editing a message, we may want to know the old prefix
@@ -64,7 +67,6 @@ class Topic_Prefix_Integrate
 	{
 		$prefix_id = isset($_POST['prefix']) ? (int) $_POST['prefix'] : 0;
 
-		require_once(SUBSDIR . '/TopicPrefix.class.php');
 		$prefix = new TopicPrefix();
 		$prefix->updateTopicPrefix($topicOptions['id'], $prefix_id);
 	}
@@ -77,7 +79,6 @@ class Topic_Prefix_Integrate
 		// Update the prefix, but only if it is the first message in the topic
 		if ($msgInfo['id_first_msg'] == $msgOptions['id'])
 		{
-			require_once(SUBSDIR . '/TopicPrefix.class.php');
 			$prefix = new TopicPrefix();
 			$prefix->updateTopicPrefix($topicOptions['id'], $prefix_id);
 		}

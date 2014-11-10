@@ -55,9 +55,9 @@ class TopicPrefix
 		$this->tm->updateByPrefixTopic($topic, $prefix_id);
 	}
 
-	public function loadPrefixes($default = null, $board = null)
+	public function loadPrefixes($default = null, $board = null, $for_edit = false)
 	{
-		global $txt;
+		global $txt, $scripturl;
 
 		$boards = (array) $board;
 		$boards_used = array();
@@ -67,11 +67,14 @@ class TopicPrefix
 
 		$px = $this->pm->getAll();
 
-		$prefixes = array(0 => array(
-			'selected' => true,
-			'text' => $txt['topicprefix_noprefix'],
-			'id_boards' => array(),
-		));
+		if (!$for_edit)
+		{
+			$prefixes = array(0 => array(
+				'selected' => true,
+				'text' => $txt['topicprefix_noprefix'],
+				'id_boards' => array(),
+			));
+		}
 
 		foreach ($px as $row)
 		{
@@ -90,6 +93,7 @@ class TopicPrefix
 				'selected' => in_array($row['id_prefix'], $this->_prefixes),
 				'text' => $row['prefix'],
 				'id_boards' => $id_boards,
+				'edit_url' => $for_edit ? $scripturl . '?action=admin;area=postsettings;sa=prefix;do=editboards;pid=' . $row['id_prefix'] : '',
 			);
 
 			if ($default == $row['id_prefix'])
@@ -100,19 +104,40 @@ class TopicPrefix
 		{
 			require_once(SUBSDIR . '/Boards.subs.php');
 			$boardsdetail = fetchBoardsInfo(array('boards' => $boards_used));
+			$num_boards = countBoards(null, array('include_redirects' => false));
 
 			foreach ($prefixes as $key => $value)
 			{
-				$bdet = array();
-				foreach ($value['id_boards'] as $id)
+				if ($num_boards == count($value['id_boards']))
+					$bdet = array(0 => array('name' => $txt['all_boards']));
+				else
 				{
-					$bdet[] = $boardsdetail[$id];
+					$bdet = array();
+					foreach ($value['id_boards'] as $id)
+					{
+						$bdet[] = $boardsdetail[$id];
+					}
 				}
 				$prefixes[$key]['boards'] = $bdet;
 			}
 		}
 
 		return $prefixes;
+	}
+
+	protected function _countBoards()
+	{
+		$db = database();
+		$request = $db->query('', '
+			SELECT COUNT(*)
+			FROM {db_prefix}boards AS b
+			WHERE {query_see_board}
+				AND '
+		);
+		list ($count) = $db->fetch_row($request);
+		$db->free_result($request);
+
+		return $count;
 	}
 
 	public function setTopic($topics)
@@ -144,6 +169,9 @@ class TopicPrefix
 
 	public function getPrefixDetails($prefix_id)
 	{
+		if (empty($prefix_id))
+			return $this->_prefixDefaults();
+
 		$pxd = $this->pm->getById($prefix_id);
 		$text = $pxd['prefix'];
 
@@ -153,7 +181,65 @@ class TopicPrefix
 
 		$count = $this->tm->countByPrefix($prefix_id);
 
-		return array('text' => $text, 'count' => $count);
+		return array('id' => $pxd['id_prefix'], 'text' => $text, 'count' => $count, 'boards' => explode(',', $pxd['id_boards']));
+	}
+
+	protected function _prefixDefaults()
+	{
+		return array(
+			'id_prefix' => 0,
+			'text' => '',
+			'boards' => array(),
+			'style' => $this->_defaultStyle($this->_maxId())
+		);
+	}
+
+	protected function _maxId()
+	{
+		$db = database();
+		$request = $db->query('', '
+			SELECT MAX(id_prefix) + 1
+			FROM {db_prefix}topic_prefix_text');
+		list ($max) = $db->fetch_row($request);
+		$db->free_result($request);
+
+		return $max;
+	}
+
+	public function getStyle($prefix_id, $theme_dir)
+	{
+		$file = $theme_dir . '/css/custom.css';
+		$style = $this->_fetchStyle($file, $prefix_id);
+
+		if ($style === false)
+			return $this->_defaultStyle($prefix_id);
+		else
+			return $style;
+	}
+
+	protected function _fetchStyle($file, $prefix_id)
+	{
+		if (!file_exists($file))
+			return false;
+
+		if (!is_writable($file))
+			return false;
+
+		$string = file_get_contents($file);
+		preg_match('~\.prefix_id_' . $prefix_id . '[\n\s]\{.*?\}~s', $string, $match);
+		if (!empty($match[0]))
+			return $match[0];
+		else
+			return false;
+	}
+
+	protected function _defaultStyle($prefix_id)
+	{
+		global $txt;
+
+		return '.prefix_id_' . $prefix_id . ' {
+	/* ' . $txt['topicprefix_yourstylehere'] . ' */
+}';
 	}
 
 	public function getPrefixedTopics($prefix_id, $id_member, $start, $limit, $sort_by, $sort_column, $indexOptions)
@@ -284,5 +370,85 @@ class TopicPrefix
 	public function countAllPrefixes()
 	{
 		return $this->pm->countAll();
+	}
+
+	public function newPrefix($text, $boards, $style, $themedir)
+	{
+		$db = database();
+
+		list ($text, $boards) = $this->_validateQueryParams($text, $boards);
+
+		if (empty($text))
+			return false;
+
+		$db->insert('insert',
+			'{db_prefix}topic_prefix_text',
+			array('prefix' => 'string-30', 'id_boards' => 'string'),
+			array($text, implode(',', $boards)),
+			array('id_prefix')
+		);
+
+		$id = $db->insert_id('{db_prefix}topic_prefix_text');
+
+		if ($style != $this->_defaultStyle($id))
+			$this->_storeStyle($id, $style, $themedir);
+
+		return $id;
+	}
+
+	public function updatePrefix($id, $text, $boards, $style, $themedir)
+	{
+		$db = database();
+
+		if (empty($id))
+			return false;
+
+		list ($text, $boards) = $this->_validateQueryParams($text, $boards);
+
+		if (empty($text))
+			return false;
+
+		$db->query('', '
+			UPDATE {db_prefix}topic_prefix_text
+			SET
+				prefix = {string:text},
+				id_boards = {string:boards}
+			WHERE id_prefix = {int:current_id}',
+			array(
+				'text' => $text,
+				'boards' => implode(',', $boards),
+				'current_id' => $id
+			)
+		);
+
+		if ($style != $this->_defaultStyle($id))
+			$this->_storeStyle($id, $style, $themedir);
+
+		return $id;
+	}
+
+	protected function _validateQueryParams($text, $boards)
+	{
+		// @todo move to validation class
+		$text = trim(Util::htmlspecialchars($text));
+		if (empty($text))
+			return false;
+
+		$boards = array_unique(array_filter(array_map('intval', $boards)));
+
+		return array($text, $boards);
+	}
+
+	protected function _storeStyle($prefix_id, $style, $themedir)
+	{
+		$file = $themedir . '/css/custom.css';
+		$old_style = $this->_fetchStyle($file, $prefix_id);
+
+		if ($old_style === false)
+			return;
+
+		$file_content = file_get_contents($file);
+		$new_content = str_replace($old_style, $style, $file_content);
+		file_put_contents($file, $new_content);
 	}
 }

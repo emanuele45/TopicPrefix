@@ -5,3 +5,10 @@
 	box-shadow: inset 0 0 2px #000000;
 	position: relative;
 }
+
+.managetopicprefix .edit {
+	float: right;
+}
+.managetopicprefix textarea {
+	height: 5em;
+}

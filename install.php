@@ -98,7 +98,7 @@ function setup_hooks ()
 
 	if (empty($context['uninstalling']))
 	{
-		updateSettings(array('prefix_style' => '<span class="topicprefix">{prefix_link}</span>&nbsp;'));
+		updateSettings(array('prefix_style' => '<span class="topicprefix {prefix_class}">{prefix_link}</span>&nbsp;'));
 
 		$db_table = db_table();
 
