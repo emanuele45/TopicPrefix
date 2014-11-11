@@ -12,3 +12,6 @@
 .managetopicprefix textarea {
 	height: 5em;
 }
+#prefix_board {
+	margin: 0.5em;
+}

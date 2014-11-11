@@ -31,8 +31,24 @@ class Topic_Prefix_Integrate
 
 	public static function messageindex_listing($topicsinfo)
 	{
+		global $context, $board;
+
 		require_once(SUBSDIR . '/TopicPrefix.subs.php');
+
 		topicprefix_showprefix($topicsinfo);
+
+		$px_manager = new TopicPrefix();
+		$prefixes = $px_manager->loadPrefixes(null, $board, true);
+		if (!empty($prefixes))
+		{
+			loadTemplate('TopicPrefix');
+			loadLanguage('TopicPrefix');
+			Template_Layers::getInstance()->addAfter('boardprefixes', 'topic_listing');
+
+			$context['prefixes_board_specific'] = array();
+			foreach ($prefixes as $id => $prefix)
+				$context['prefixes_board_specific'][] = topicprefix_prefix_marktup(array('id_prefix' => $id, 'prefix' => $prefix['text']), $board);
+		}
 	}
 
 	public static function display_message_list()
@@ -47,6 +63,7 @@ class Topic_Prefix_Integrate
 			require_once(SUBSDIR . '/TopicPrefix.subs.php');
 			loadCSSFile('TopicPrefix.css');
 			loadLanguage('TopicPrefix');
+
 			$context['num_views_text'] = sprintf($txt['topicprefix_linktree'], topicprefix_prefix_marktup($prefixes[$topic])) . ' ' . $context['num_views_text'];
 		}
 	}

@@ -88,7 +88,7 @@ class Prefix_Controller extends Action_Controller
 	public function action_prefixedtopics()
 	{
 		global $txt, $scripturl, $modSettings, $context;
-		global $options, $settings, $user_info;
+		global $options, $settings, $user_info, $board;
 
 		loadTemplate('MessageIndex');
 		loadJavascriptFile('topic.js');
@@ -217,7 +217,8 @@ class Prefix_Controller extends Action_Controller
 			'previews' => !empty($modSettings['message_index_preview']) ? (empty($modSettings['preview_characters']) ? -1 : $modSettings['preview_characters']) : 0,
 			'include_avatars' => !empty($settings['avatars_on_indexes']),
 			'ascending' => $ascending,
-			'fake_ascending' => $fake_ascending
+			'fake_ascending' => $fake_ascending,
+			'board' => !empty($board) ? $board : null,
 		);
 
 		// Allow integration to modify / add to the $indexOptions

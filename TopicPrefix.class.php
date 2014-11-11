@@ -16,6 +16,11 @@ class TopicPrefix
 	protected $_currentTopics = null;
 	protected $_prefixes = array();
 
+	public function __construct()
+	{
+		require_once(SOURCEDIR . '/TopicPrefix.integrate.php');
+	}
+
 	public function __get($method)
 	{
 		switch ($method)
@@ -81,7 +86,7 @@ class TopicPrefix
 		foreach ($px as $row)
 		{
 			$id_boards = array();
-			if (empty($row['id_boards']))
+			if (!$for_edit && empty($row['id_boards']))
 				continue;
 
 			// I could use find_in_set, but I may also change my mind later...
@@ -90,7 +95,7 @@ class TopicPrefix
 			if (!empty($boards) && count(array_intersect($boards, $id_boards)) == 0)
 				continue;
 
-			$boards_used = array_unique(array_merge($boards_used, $id_boards));
+			$boards_used = array_filter(array_unique(array_merge($boards_used, $id_boards)));
 
 			$prefixes[$row['id_prefix']] = array(
 				'selected' => in_array($row['id_prefix'], $this->_prefixes),
@@ -118,7 +123,8 @@ class TopicPrefix
 					$bdet = array();
 					foreach ($value['id_boards'] as $id)
 					{
-						$bdet[] = $boardsdetail[$id];
+						if (!empty($id))
+							$bdet[] = $boardsdetail[$id];
 					}
 				}
 				$prefixes[$key]['boards'] = $bdet;
@@ -259,7 +265,8 @@ class TopicPrefix
 				INNER JOIN {db_prefix}messages AS mf ON (mf.id_msg = t.id_first_msg)' : '')) . ($sort_by === 'starter' ? '
 				LEFT JOIN {db_prefix}members AS memf ON (memf.id_member = mf.id_member)' : '') . ($sort_by === 'last_poster' ? '
 				LEFT JOIN {db_prefix}members AS meml ON (meml.id_member = ml.id_member)' : '') . '
-			WHERE {query_see_board}
+			WHERE {query_see_board}' . ($indexOptions['board'] === null ? '' : '
+				AND b.id_board = {int:board}') . '
 				AND p.id_prefix = {int:current_prefix}' . (!$indexOptions['only_approved'] ? '' : '
 				AND (t.approved = {int:is_approved}' . ($id_member == 0 ? '' : ' OR t.id_member_started = {int:current_member}') . ')') . '
 			ORDER BY ' . ($indexOptions['include_sticky'] ? 't.is_sticky' . ($indexOptions['fake_ascending'] ? '' : ' DESC') . ', ' : '') . $sort_column . ($indexOptions['ascending'] ? '' : ' DESC') . '
@@ -267,6 +274,7 @@ class TopicPrefix
 			array(
 				'current_prefix' => $prefix_id,
 				'current_member' => $id_member,
+				'board' => $indexOptions['board'],
 				'is_approved' => 1,
 				'id_member_guest' => 0,
 				'start' => $start,
@@ -315,7 +323,7 @@ class TopicPrefix
 					LEFT JOIN {db_prefix}log_topics AS lt ON (lt.id_topic = t.id_topic AND lt.id_member = {int:current_member})
 					LEFT JOIN {db_prefix}log_mark_read AS lmr ON (lmr.id_board = t.id_board AND lmr.id_member = {int:current_member})') . (!empty($indexOptions['include_avatars']) ? '
 					LEFT JOIN {db_prefix}attachments AS a ON (a.id_member = ml.id_member AND a.id_member != 0)' : '') . '
-				WHERE p.id_prefix = {int:current_prefix}' . (!$indexOptions['only_approved'] ? '' : '
+				WHERE t.id_topic IN ({array_int:topic_list})' . (!$indexOptions['only_approved'] ? '' : '
 					AND (t.approved = {int:is_approved}' . ($id_member == 0 ? '' : ' OR t.id_member_started = {int:current_member}') . ')') . '
 				ORDER BY ' . ($indexOptions['include_sticky'] ? 'is_sticky' . ($indexOptions['fake_ascending'] ? '' : ' DESC') . ', ' : '') . $sort_column . ($indexOptions['ascending'] ? '' : ' DESC') . '
 				LIMIT {int:start}, ' . '{int:maxindex}',

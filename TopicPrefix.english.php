@@ -28,3 +28,5 @@ $txt['all_boards'] = 'All boards';
 $txt['no_boards'] = 'Not used in any board';
 $txt['add_new'] = 'Add new';
 $txt['topicprefix_change_text'] = 'Change text:';
+
+$txt['topicprefix_click_here'] = 'Click here to filter the topics in this board:';

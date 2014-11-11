@@ -34,7 +34,7 @@ function topicprefix_showprefix($topicsinfo)
 		loadCSSFile('TopicPrefix.css');
 }
 
-function topicprefix_prefix_marktup($prefix_info)
+function topicprefix_prefix_marktup($prefix_info, $board = null)
 {
 	global $settings, $modSettings, $scripturl;
 
@@ -48,9 +48,10 @@ function topicprefix_prefix_marktup($prefix_info)
 		'{prefix_link}',
 		'{prefix_class}',
 	);
+
 	$replace = array(
 		$prefix_info['prefix'],
-		'<a href="' . $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_info['id_prefix'] . '">' . $prefix_info['prefix'] . '</a>',
+		'<a href="' . $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_info['id_prefix'] . ($board === null ? '' : ';board=' . $board) . '">' . $prefix_info['prefix'] . '</a>',
 		'prefix_id_' . $prefix_info['id_prefix'],
 	);
 	return str_replace($find, $replace, $prefix_style);

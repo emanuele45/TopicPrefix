@@ -40,6 +40,19 @@ function template_topicprefix_list()
 
 }
 
+function template_boardprefixes_above()
+{
+	global $context, $txt;
+	echo '
+	<div id="prefix_board">
+		<span class="intro">
+			', $txt['topicprefix_click_here'], '
+		</span>
+		<span class="generalinfo">', implode(' ', $context['prefixes_board_specific']), '
+		</span>
+	</div>';
+}
+
 function template_manage_topicprefix()
 {
 	global $context, $txt, $modSettings;
