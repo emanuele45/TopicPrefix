@@ -13,12 +13,12 @@ $hooks = array(
 	array(
 		'integrate_messageindex_listing',
 		'Topic_Prefix_Integrate::messageindex_listing',
-		'SUBSDIR/TopicPrefix.integrate.php',
+		'SOURCEDIR/TopicPrefix.integrate.php',
 	),
 	array(
 		'integrate_action_post_after',
 		'Topic_Prefix_Integrate::post_after',
-		'SUBSDIR/TopicPrefix.integrate.php',
+		'SOURCEDIR/TopicPrefix.integrate.php',
 	),
 	array(
 		'integrate_display_message_list',
@@ -28,22 +28,22 @@ $hooks = array(
 	array(
 		'integrate_create_topic',
 		'Topic_Prefix_Integrate::create_topic',
-		'SUBSDIR/TopicPrefix.integrate.php',
+		'SOURCEDIR/TopicPrefix.integrate.php',
 	),
 	array(
 		'integrate_before_modify_post',
 		'Topic_Prefix_Integrate::before_modify_post',
-		'SUBSDIR/TopicPrefix.integrate.php',
+		'SOURCEDIR/TopicPrefix.integrate.php',
 	),
 	array(
 		'integrate_admin_areas',
-		'TopicPrefix::admin_areas',
-		'SUBSDIR/TopicPrefix.integrate.php',
+		'Topic_Prefix_Integrate::admin_areas',
+		'SOURCEDIR/TopicPrefix.integrate.php',
 	),
 	array(
 		'integrate_sa_manage_posts',
-		'TopicPrefix::sa_manage_posts',
-		'SUBSDIR/TopicPrefix.integrate.php',
+		'Topic_Prefix_Integrate::sa_manage_posts',
+		'SOURCEDIR/TopicPrefix.integrate.php',
 	),
 );
 $mod_name = 'Topics Prefix';
@@ -125,7 +125,7 @@ function setup_hooks ()
 			),
 			array(
 				array(
-					'name' => 'reports',
+					'name' => 'id_topic_prefix',
 					'type' => 'unique',
 					'columns' => array('id_prefix', 'id_topic'),
 				),
@@ -137,6 +137,7 @@ function setup_hooks ()
 			array(
 				array(
 						'name' => 'id_prefix',
+						'type' => 'SMALLINT',
 						'auto' => true,
 				),
 				array(
@@ -152,7 +153,7 @@ function setup_hooks ()
 			),
 			array(
 				array(
-					'name' => 'reports',
+					'name' => 'id_prefix',
 					'type' => 'primary',
 					'columns' => array('id_prefix'),
 				),
