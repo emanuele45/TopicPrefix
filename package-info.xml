@@ -25,7 +25,6 @@
 		<require-file name="TopicPrefix.subs.php" destination="SUBSDIR" />
 		<require-file name="TopicPrefix.english.php" destination="LANGUAGEDIR/english" />
 		<require-file name="TopicPrefix.template.php" destination="THEMEDIR" />
-		<require-file name="TopicPrefix.js" destination="THEMEDIR/scripts" />
 		<require-file name="TopicPrefix.css" destination="THEMEDIR/css" />
 		<code>install.php</code>
 	</install>
@@ -39,7 +38,6 @@
 		<remove-file name="SUBSDIR/TopicPrefix.subs.php" />
 		<remove-file name="LANGUAGEDIR/english/TopicPrefix.english.php" />
 		<remove-file name="THEMEDIR/TopicPrefix.template.php" />
-		<remove-file name="THEMEDIR/scripts/TopicPrefix.js" />
 		<remove-file name="THEMEDIR/css/TopicPrefix.css" />
 		<code>install.php</code>
 	</uninstall>
