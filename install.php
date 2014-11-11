@@ -21,6 +21,11 @@ $hooks = array(
 		'SUBSDIR/TopicPrefix.integrate.php',
 	),
 	array(
+		'integrate_display_message_list',
+		'Topic_Prefix_Integrate::display_message_list',
+		'SOURCEDIR/TopicPrefix.integrate.php',
+	),
+	array(
 		'integrate_create_topic',
 		'Topic_Prefix_Integrate::create_topic',
 		'SUBSDIR/TopicPrefix.integrate.php',
