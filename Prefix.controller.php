@@ -15,7 +15,7 @@
  * copyright:	2011 Simple Machines (http://www.simplemachines.org)
  * license:		BSD, See included LICENSE.TXT for terms and conditions.
  *
- * @version 0.0.1
+ * @version 0.0.2
  */
 
 if (!defined('ELK'))

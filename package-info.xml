@@ -8,12 +8,12 @@
  * @author  emanuele
  * @license BSD http://opensource.org/licenses/BSD-3-Clause
  *
- * @version 0.0.1
+ * @version 0.0.2
  */
 	]]></license>
 	<id>emanuele:TopicsPrefix</id>
 	<name>Topics Prefix</name>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<type>modification</type>
 	<install for="1.0 - 1.0.99">
 		<require-file name="TopicPrefix.integrate.php" destination="SOURCEDIR" />
