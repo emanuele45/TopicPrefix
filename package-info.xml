@@ -26,6 +26,9 @@
 		<require-file name="TopicPrefix.english.php" destination="LANGUAGEDIR/english" />
 		<require-file name="TopicPrefix.template.php" destination="THEMEDIR" />
 		<require-file name="TopicPrefix.css" destination="THEMEDIR/css" />
+		<require-file name="Prefix/StylePicker.class.php" destination="SUBSDIR/Prefix" />
+		<require-file name="Prefix/StylePicker.english.php" destination="LANGUAGEDIR/english/Prefix" />
+		<require-file name="Prefix/StylePicker.template.php" destination="THEMEDIR/Prefix" />
 		<code>install.php</code>
 	</install>
 	<uninstall for="1.0 - 1.0.99">
@@ -39,6 +42,9 @@
 		<remove-file name="LANGUAGEDIR/english/TopicPrefix.english.php" />
 		<remove-file name="THEMEDIR/TopicPrefix.template.php" />
 		<remove-file name="THEMEDIR/css/TopicPrefix.css" />
+		<remove-file name="SUBSDIR/Prefix/StylePicker.class.php" />
+		<remove-file name="LANGUAGEDIR/english/Prefix/StylePicker.english.php" />
+		<remove-file name="THEMEDIR/Prefix/StylePicker.template.php" />
 		<code>install.php</code>
 	</uninstall>
 </package-info>

@@ -30,3 +30,5 @@ $txt['add_new'] = 'Add new';
 $txt['topicprefix_change_text'] = 'Change text:';
 
 $txt['topicprefix_click_here'] = 'Click here to filter the topics in this board:';
+
+$txt['prefix_style_header'] = 'Style the prefix';

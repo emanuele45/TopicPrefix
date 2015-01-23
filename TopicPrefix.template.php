@@ -72,7 +72,7 @@ function template_manage_topicprefix()
 	{
 		echo '
 							<dt>
-								<input disabled type="text" name="prefix[', $prefix_id, ']" value="', $prefix['text'], '" />
+								<input class="prefix_edit" type="text" name="prefix[', $prefix_id, ']" value="', $prefix['text'], '" />
 								<a class="edit linkbutton" href="', $prefix['edit_url'], '">', $txt['edit'], '</a>
 							</dt>
 							<dd>';
@@ -139,4 +139,32 @@ function template_prefixeditboards()
 				<input type="hidden" name="', $context['session_var'], '" value="', $context['session_id'], '" />
 			</form>
 		</div>';
+}
+
+function template_prefix_picker_popup()
+{
+	echo '
+	<dl class="settings">';
+	template_profile_style_picker();
+	echo '
+	</dl>';
+}
+
+function template_prefix_boardspicker_popup()
+{
+	global $context;
+
+	echo '
+	<form id="admin_form_wrapper" name="editprefix">
+		<fieldset id="pick_boards">';
+
+	template_pick_boards('editprefix', 'brd', true);
+
+	echo '
+		</fieldset>
+	</form>
+	<script>';
+	foreach ($context['javascript_inline'] as $val)
+		echo implode("\n\t\t", $context['javascript_inline']['defer']);
+	echo '</script>';
 }

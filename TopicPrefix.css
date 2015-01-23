@@ -9,9 +9,60 @@
 .managetopicprefix .edit {
 	float: right;
 }
+.managetopicprefix i {
+	padding-left: 0.5em;
+	cursor: pointer;
+}
 .managetopicprefix textarea {
 	height: 5em;
 }
 #prefix_board {
 	margin: 0.5em;
+}
+
+.popup_container .popup_window.prefixpopup {
+	margin: 5% auto;
+	width: 80%;
+}
+.prefixpopup .popup_content {
+}
+.prefixpopup .prefixdemo {
+	border: 1px solid #000000;
+	display: inline-block;
+	height: 60px;
+	padding-top: 30px;
+	position: fixed;
+	right: 15%;
+	text-align: center;
+	top: 15%;
+	width: 100px;
+}
+.prefixpopup dl.settings {
+	margin: 2%
+}
+
+.prefixpopup span.pre {
+	display: block;
+	unicode-bidi: embed;
+	font-family: monospace;
+	white-space: pre;
+}
+
+.prefixpopup .right_submit {
+	margin-bottom: 1em;
+}
+.prefixpopup .popup_content:after {
+	content: '';
+	display: block;
+	clear: both;
+}
+.prefixpopup .prefixhelp {
+	cursor: pointer;
+}
+
+@media screen and (max-width: 50em) {
+	.prefixpopup .prefixdemo {
+		position: static;
+		display: block;
+	}
 }

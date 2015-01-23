@@ -220,7 +220,7 @@ class TopicPrefix
 		$file = $theme_dir . '/css/custom.css';
 		$style = $this->_fetchStyle($file, $prefix_id);
 
-		if ($style === false)
+		if ($style === false || $style === true)
 			return $this->_defaultStyle($prefix_id);
 		else
 			return $style;
@@ -239,7 +239,7 @@ class TopicPrefix
 		if (!empty($match[0]))
 			return $match[0];
 		else
-			return false;
+			return true;
 	}
 
 	protected function _defaultStyle($prefix_id)
@@ -401,13 +401,12 @@ class TopicPrefix
 
 		$id = $db->insert_id('{db_prefix}topic_prefix_text');
 
-		if ($style != $this->_defaultStyle($id))
-			$this->_storeStyle($id, $style, $themedir);
+		$this->_storeStyle($id, $style, $themedir);
 
 		return $id;
 	}
 
-	public function updatePrefix($id, $text, $boards, $style, $themedir)
+	public function updatePrefix($id, $text = null, $boards = null, $style = null, $themedir = null)
 	{
 		$db = database();
 
@@ -416,23 +415,34 @@ class TopicPrefix
 
 		list ($text, $boards) = $this->_validateQueryParams($text, $boards);
 
-		if (empty($text))
+		if (empty($text) && empty($boards) && empty($style))
 			return false;
 
-		$db->query('', '
-			UPDATE {db_prefix}topic_prefix_text
-			SET
-				prefix = {string:text},
-				id_boards = {string:boards}
-			WHERE id_prefix = {int:current_id}',
-			array(
-				'text' => $text,
-				'boards' => implode(',', $boards),
-				'current_id' => $id
-			)
-		);
+		$update = array();
+		if ($text !== null)
+			$update[] = 'prefix = {string:text}';
 
-		if ($style != $this->_defaultStyle($id))
+		if ($boards !== null)
+			$update[] = 'id_boards = {string:boards}';
+		else
+			$boards = array();
+
+		if (!empty($update))
+		{
+			$db->query('', '
+				UPDATE {db_prefix}topic_prefix_text
+				SET
+					' . implode(',', $update) . '
+				WHERE id_prefix = {int:current_id}',
+				array(
+					'text' => $text,
+					'boards' => implode(',', $boards),
+					'current_id' => $id
+				)
+			);
+		}
+
+		if ($style !== null)
 			$this->_storeStyle($id, $style, $themedir);
 
 		return $id;
@@ -441,25 +451,85 @@ class TopicPrefix
 	protected function _validateQueryParams($text, $boards)
 	{
 		// @todo move to validation class
-		$text = trim(Util::htmlspecialchars($text));
-		if (empty($text))
-			return false;
+		if ($text !== null)
+		{
+			$text = trim(Util::htmlspecialchars($text));
+			if (empty($text))
+				return false;
+		}
 
-		$boards = array_unique(array_filter(array_map('intval', $boards)));
+		if ($boards !== null)
+			$boards = array_unique(array_filter(array_map('intval', $boards)));
 
 		return array($text, $boards);
 	}
 
+	protected function _unWrap($style)
+	{
+		$style = trim($style);
+		$style = trim(substr($style, strpos($style, '{') + 1));
+		$style = trim(substr($style, 0, strpos($style, '}')));
+
+		return $style;
+	}
+
+	public function styleToArray($style)
+	{
+		$style = $this->_unWrap($style);
+		$styles = explode(';', $style);
+		$return = array();
+		foreach ($styles as $val)
+		{
+			$elem = explode(':', $val);
+			if (count($elem) !== 2)
+				continue;
+			$k = trim($elem[0]);
+			$v = trim($elem[1]);
+			if (!empty($k) && !empty($v))
+				$return[trim($elem[0])] = trim($elem[1]);
+		}
+
+		return $return;
+	}
+
+	protected function _wrapStyle($prefix_id, $style)
+	{
+		$style = trim($style);
+
+		if (empty($style))
+			return $style;
+
+		$class = trim(substr($style, 0, strpos($style, '{')));
+
+		if ($class === '.prefix_id_' . $prefix_id)
+			return $style;
+		else
+			return '.prefix_id_' . $prefix_id . ' {
+	' . $style . '
+}';
+	}
+
 	protected function _storeStyle($prefix_id, $style, $themedir)
 	{
+		$style = $this->_wrapStyle($prefix_id, $style);
+
+		if ($style == $this->_defaultStyle($prefix_id))
+			return false;
+
 		$file = $themedir . '/css/custom.css';
 		$old_style = $this->_fetchStyle($file, $prefix_id);
 
 		if ($old_style === false)
-			return;
+			return false;
 
 		$file_content = file_get_contents($file);
-		$new_content = str_replace($old_style, $style, $file_content);
+
+		if ($old_style === true)
+			$new_content = $file_content . "\n\n" . $style;
+		else
+			$new_content = str_replace($old_style, $style, $file_content);
 		file_put_contents($file, $new_content);
+
+		return true;
 	}
 }
