@@ -297,7 +297,11 @@ class ManagePrefix_Controller extends Action_Controller
 		$context['sub_template'] = 'manage_topicprefix';
 		$context['topicprefix_action'] = $scripturl . '?action=admin;area=postsettings;sa=prefix;do=savenames';
 		$context['topicprefix_addnew_url'] = $scripturl . '?action=admin;area=postsettings;sa=prefix;do=editboards';
-		addJavascriptVar(array('prefix_style_header' => $txt['prefix_style_header']), true);
+		addJavascriptVar(array(
+			'prefix_style_header' => $txt['prefix_style_header'],
+			'prefix_boards_header' => $txt['choose_board'],
+			'prefix_save_button' => $txt['save'],
+		), true);
 
 		$px_manager = new TopicPrefix();
 		$context['topicprefix'] = $px_manager->loadPrefixes(null, null, true);

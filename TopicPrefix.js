@@ -81,7 +81,7 @@ $(document).ready(function() {
 			}).hide();
 			$content.last().after($('<input class="right_submit" />')
 				.attr('type', 'submit')
-				.val('Save')
+				.val(prefix_save_button)
 				.click(function() {
 					var values = {style_picker_vals: {}};
 					$content.find('select, input:not(:hidden)').each(function () {
@@ -144,7 +144,7 @@ $(document).ready(function() {
 	var $boards = $('<i class="fa fa-edit fa-lg success"></i>').click(function(e) {
 		var $boardsbtn = $(this),
 			stylePicker = new smc_Popup({
-				heading: prefix_style_header,
+				heading: prefix_boards_header,
 				content: sAjax_indicator,
 				icon: sIcon,
 				custom_class: 'prefixpopup'
@@ -165,7 +165,7 @@ $(document).ready(function() {
 
 			$content.last().after($('<input class="right_submit" />')
 				.attr('type', 'submit')
-				.val('Save')
+				.val(prefix_save_button)
 				.click(function() {
 					var values = {};
 					$content.find('input').each(function () {
