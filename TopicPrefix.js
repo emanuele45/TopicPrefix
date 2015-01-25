@@ -79,7 +79,7 @@ $(document).ready(function() {
 							$text.slideToggle();
 						}));
 			}).hide();
-			$content.after($('<input class="right_submit" />')
+			$content.last().after($('<input class="right_submit" />')
 				.attr('type', 'submit')
 				.val('Save')
 				.click(function() {
@@ -163,7 +163,7 @@ $(document).ready(function() {
 
 			stylePicker.body($content);
 
-			$content.after($('<input class="right_submit" />')
+			$content.last().after($('<input class="right_submit" />')
 				.attr('type', 'submit')
 				.val('Save')
 				.click(function() {
