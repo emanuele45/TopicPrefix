@@ -206,7 +206,7 @@ class TopicPrefix_TcCRUD
 		{
 			return $this->singleRes($result);
 		}
-		elseif (count($result[0][$index]) === 2)
+		elseif (is_array($result[0][$index]) && count($result[0][$index]) === 2)
 		{
 			foreach ($result[0] as $key => $val)
 			{
@@ -226,7 +226,7 @@ class TopicPrefix_TcCRUD
 
 	protected function singleRes($result)
 	{
-		if (count($result) !== 1)
+		if (is_array($result) && count($result) !== 1)
 			return $result;
 		else
 			return $result[0];
