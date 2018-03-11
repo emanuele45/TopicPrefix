@@ -8,14 +8,14 @@
  * @author  emanuele
  * @license BSD http://opensource.org/licenses/BSD-3-Clause
  *
- * @version 0.0.2
+ * @version 0.0.3
  */
 	]]></license>
 	<id>emanuele:TopicsPrefix</id>
 	<name>Topics Prefix</name>
-	<version>0.0.2</version>
+	<version>0.0.3</version>
 	<type>modification</type>
-	<install for="1.0 - 1.0.99">
+	<install for="1.0 - 1.1.99">
 		<require-file name="TopicPrefix.integrate.php" destination="SOURCEDIR" />
 		<require-file name="ManagePrefix.controller.php" destination="ADMINDIR" />
 		<require-file name="Prefix.controller.php" destination="CONTROLLERDIR" />
@@ -32,7 +32,7 @@
 		<require-file name="Prefix/StylePicker.template.php" destination="THEMEDIR/Prefix" />
 		<code>install.php</code>
 	</install>
-	<uninstall for="1.0 - 1.0.99">
+	<uninstall for="1.0 - 1.1.99">
 		<remove-file name="SOURCEDIR/TopicPrefix.integrate.php" />
 		<remove-file name="ADMINDIR/ManagePrefix.controller.php" />
 		<remove-file name="CONTROLLERDIR/Prefix.controller.php" />
