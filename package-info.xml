@@ -8,14 +8,15 @@
  * @author  emanuele
  * @license BSD http://opensource.org/licenses/BSD-3-Clause
  *
- * @version 0.0.2
+ * @version 0.0.3
  */
 	]]></license>
 	<id>emanuele:TopicsPrefix</id>
 	<name>Topics Prefix</name>
-	<version>0.0.2</version>
+	<version>0.0.3</version>
 	<type>modification</type>
-	<install for="1.0 - 1.0.99">
+	<install for="1.0 - 1.1.99">
+		<modification>modifications.xml</modification>
 		<require-file name="TopicPrefix.integrate.php" destination="SOURCEDIR" />
 		<require-file name="ManagePrefix.controller.php" destination="ADMINDIR" />
 		<require-file name="Prefix.controller.php" destination="CONTROLLERDIR" />
@@ -25,14 +26,15 @@
 		<require-file name="TopicPrefix.subs.php" destination="SUBSDIR" />
 		<require-file name="TopicPrefix.english.php" destination="LANGUAGEDIR/english" />
 		<require-file name="TopicPrefix.template.php" destination="THEMEDIR" />
-		<require-file name="TopicPrefix.css" destination="THEMEDIR/css" />
 		<require-file name="TopicPrefix.js" destination="THEMEDIR/scripts" />
+		<require-file name="TopicPrefix.css" destination="THEMEDIR/css" />
 		<require-file name="Prefix/StylePicker.class.php" destination="SUBSDIR/Prefix" />
 		<require-file name="Prefix/StylePicker.english.php" destination="LANGUAGEDIR/english/Prefix" />
 		<require-file name="Prefix/StylePicker.template.php" destination="THEMEDIR/Prefix" />
 		<code>install.php</code>
 	</install>
-	<uninstall for="1.0 - 1.0.99">
+	<uninstall for="1.0 - 1.1.99">
+		<modification reverse="true">modifications.xml</modification>
 		<remove-file name="SOURCEDIR/TopicPrefix.integrate.php" />
 		<remove-file name="ADMINDIR/ManagePrefix.controller.php" />
 		<remove-file name="CONTROLLERDIR/Prefix.controller.php" />
