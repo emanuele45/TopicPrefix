@@ -49,6 +49,8 @@ class Prefix_Controller extends Action_Controller
 	 */
 	public function action_index()
 	{
+		global $context;
+
 		// Our short subActions array
 		$subActions = array(
 			'prefixlist' => array($this, 'action_prefixlist'),

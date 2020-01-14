@@ -18,6 +18,12 @@ class TopicPrefix
 		require_once(SOURCEDIR . '/TopicPrefix.integrate.php');
 	}
 
+	/**
+	 * @property TopicPrefix_PxCRUD $pm
+	 * @property TopicPrefix_TcCRUD $tm
+	 * @param $method
+	 * @return \TopicPrefix_PxCRUD|\TopicPrefix_TcCRUD
+	 */
 	public function __get($method)
 	{
 		switch ($method)
@@ -43,7 +49,7 @@ class TopicPrefix
 		// All the template stuff
 		loadTemplate('TopicPrefix');
 		loadLanguage('TopicPrefix');
-		Template_Layers::getInstance()->addAfter('pickprefix', 'postarea');
+		Template_Layers::instance()->addAfter('pickprefix', 'postarea');
 
 		// If we are editing a message, we may want to know the old prefix
 		if (isset($_REQUEST['msg']))
@@ -77,6 +83,18 @@ class TopicPrefix
 		return array_shift($prefixes);
 	}
 
+	/**
+	 * Generates the listing of prefix's that are available for a board.  Used for the
+	 * selection list in new topics and quick moderation.
+	 *
+	 * Additionally will create the list of boards a prefix is available for use on if
+	 * $for_edit is set to true.
+	 *
+	 * @param int $default
+	 * @param int $board
+	 * @param bool $for_edit
+	 * @return array
+	 */
 	public function loadPrefixes($default = null, $board = null, $for_edit = false)
 	{
 		global $txt, $scripturl;
@@ -84,57 +102,61 @@ class TopicPrefix
 		$boards = (array) $board;
 		$boards_used = array();
 
+		// If we have a list of topics, load the prefixes they use
 		if ($this->_currentTopics !== null)
 		{
 			$this->_prefixes = $this->tm->getByTopic($this->_currentTopics);
 		}
 
-		$px = $this->pm->getAll();
+		// Fetch all of the prefixes in the system
+		$allPrefixes = $this->pm->getAll();
 
+		$prefixes = array();
 		if (!$for_edit)
 		{
-			$prefixes = array(0 => array(
+			$prefixes[0] = array(
 				'selected' => true,
 				'text' => $txt['topicprefix_noprefix'],
 				'id_boards' => array(),
-			));
-		}
-		else
-		{
-			$prefixes = array();
+			);
 		}
 
-		foreach ($px as $row)
+		foreach ($allPrefixes as $prefixData)
 		{
-			if (!$for_edit && empty($row['id_boards']))
+			// Prefix is not used on any boards
+			if (!$for_edit && empty($prefixData['id_boards']))
 			{
 				continue;
 			}
 
 			// I could use find_in_set, but I may also change my mind later...
-			$id_boards = explode(',', $row['id_boards']);
+			$id_boards = explode(',', $prefixData['id_boards']);
 
-			if (!empty($boards) && count(array_intersect($boards, $id_boards)) == 0)
+			// Prefix is not used on the current set of boards
+			if (!empty($boards) && count(array_intersect($boards, $id_boards)) === 0)
 			{
 				continue;
 			}
 
 			$boards_used = array_filter(array_unique(array_merge($boards_used, $id_boards)));
 
-			$prefixes[$row['id_prefix']] = array(
-				'selected' => in_array($row['id_prefix'], $this->_prefixes),
-				'text' => $row['prefix'],
+			// Add it as an available prefix
+			$prefixes[$prefixData['id_prefix']] = array(
+				'selected' => in_array($prefixData['id_prefix'], $this->_prefixes),
+				'text' => $prefixData['prefix'],
 				'id_boards' => $id_boards,
-				'edit_url' => $for_edit ? $scripturl . '?action=admin;area=postsettings;sa=prefix;do=editboards;pid=' . $row['id_prefix'] : '',
+				'edit_url' => $scripturl . '?action=admin;area=postsettings;sa=prefix;do=editboards;pid=' . $prefixData['id_prefix'],
 			);
 
-			if ($default == $row['id_prefix'])
+			if ($default == $prefixData['id_prefix'])
 			{
 				$prefixes[0]['selected'] = false;
+				$prefixes[$default]['selected'] = true;
 			}
 		}
 
-		if ($board === null && !empty($boards_used))
+		// The list of boards the prefix is used on, for use in areas like the ACP info panel
+		if ($for_edit && !empty($boards_used))
 		{
 			require_once(SUBSDIR . '/Boards.subs.php');
 			$boardsdetail = fetchBoardsInfo(array('boards' => $boards_used));
@@ -172,9 +194,7 @@ class TopicPrefix
 
 	public function setTopic($topics)
 	{
-		$this->_is_array = is_array($this->_currentTopics);
-
-		if (!$this->_is_array)
+		if (!is_array($this->_currentTopics))
 		{
 			$this->_currentTopics = array($this->_currentTopics);
 		}

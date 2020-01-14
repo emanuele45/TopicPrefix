@@ -29,6 +29,8 @@ class ManagePrefix_Controller extends Action_Controller
 	 */
 	public function action_index()
 	{
+		global $context;
+
 		// Our tidy subActions array
 		$subActions = array(
 			'list' => array($this, 'action_list'),

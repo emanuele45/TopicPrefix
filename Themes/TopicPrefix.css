@@ -19,6 +19,26 @@
 	margin: 0.5em;
 }
 
+#post_prefix_header {
+	overflow: hidden;
+	padding: 0 6px 6px 6px;
+}
+
+#post_prefix_header dt {
+	float: left;
+	margin: 6px 0 0 0;
+	padding: 0;
+	width: 15%;
+	font-weight: bold;
+}
+
+#post_prefix_header dd {
+	float: left;
+	margin: 4px 0;
+	padding: 0;
+	width: 83%;
+}
+
 .popup_container .popup_window.prefixpopup {
 	margin: 5% auto;
 	width: 80%;
@@ -40,7 +60,7 @@
 }
 
 .prefixpopup dl.settings {
-	margin: 2%
+	margin: 2%;
 }
 
 .prefixpopup span.pre {

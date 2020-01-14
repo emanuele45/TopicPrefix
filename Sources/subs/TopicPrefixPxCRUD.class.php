@@ -90,11 +90,23 @@ class TopicPrefix_PxCRUD
 		return $this->count('text', array('text' => $text, 'board' => (int) $board));
 	}
 
+	/**
+	 * The all prefix getter.  Returns every defined prefix in the system
+	 *
+	 * @return array
+	 */
 	public function getAll()
 	{
 		return $this->read('all', null);
 	}
 
+	/**
+	 * Loads a set of prefixes based on passed conditions.
+	 *
+	 * @param string $type 'all', 'id', 'text'
+	 * @param mixed $value conditions for the type
+	 * @return array
+	 */
 	protected function read($type, $value)
 	{
 		$request = $this->runQuery('

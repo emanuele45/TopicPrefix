@@ -8,10 +8,14 @@
  * @version 0.0.5
  */
 
+/**
+ * Adds the prefix selection area to the above post area
+ */
 function template_pickprefix_above()
 {
 	global $context, $txt;
 
+	// No prefixes, no selection
 	if (empty($context['available_prefixes']))
 	{
 		return;
@@ -19,12 +23,12 @@ function template_pickprefix_above()
 
 	// The post header... important stuff
 	echo '
-						<dl id="post_header">
+						<dl id="post_prefix_header">
 							<dt class="clear_left">
 								<label for="post_in_board">', $txt['topicprefix_pickprefix'], '</label>
 							</dt>
 							<dd>
-								<select name="prefix" id="post_in_board">';
+								<select name="prefix" id="post_in_board" onchange="showprefix()">';
 
 	foreach ($context['available_prefixes'] as $id => $prefix)
 	{
@@ -34,6 +38,7 @@ function template_pickprefix_above()
 
 	echo '
 								</select>
+								&nbsp;<span id="prefix" class="prefix_style"></span>
 							</dd>
 						</dl>';
 }
@@ -66,8 +71,8 @@ function template_manage_topicprefix()
 				<h3 class="category_header">', $txt['topicprefix_manage_header'], '</h3>
 				<div class="content">
 					<dl class="settings">
-						<dt>', $txt['topicprefix_prefix_text'], '</dt>
-						<dd>' . $txt['choose_board'] . '</dd>';
+						<dt><strong>', $txt['topicprefix_prefix_text'], '</strong></dt>
+						<dd><strong>' . $txt['choose_board'] . '</strong></dd>';
 
 	$deny_boards_access = $modSettings['deny_boards_access'];
 	$modSettings['deny_boards_access'] = false;

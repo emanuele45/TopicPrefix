@@ -138,7 +138,7 @@ class StylePicker
 	/**
 	 * Validates the value is a valid size construct, like 3em or 4px
 	 *
-	 * @param string $string
+	 * @param string|array $string
 	 * @param int $min
 	 * @param int $max
 	 * @return string

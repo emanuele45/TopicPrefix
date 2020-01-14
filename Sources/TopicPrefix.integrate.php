@@ -9,48 +9,40 @@
  * @version 0.0.5
  */
 
-spl_autoload_register(array('Topic_Prefix_Integrate', 'autoload'));
-
+/**
+ * Our selection of hook based integration functions
+ *
+ * Class Topic_Prefix_Integrate
+ */
 class Topic_Prefix_Integrate
 {
-	public static function autoload($class)
-	{
-		switch ($class)
-		{
-			case 'TopicPrefix':
-				require_once(SUBSDIR . '/TopicPrefix.class.php');
-				break;
-			case 'TopicPrefix_TcCRUD':
-				require_once(SUBSDIR . '/TopicPrefixTcCRUD.class.php');
-				break;
-			case 'TopicPrefix_PxCRUD':
-				require_once(SUBSDIR . '/TopicPrefixPxCRUD.class.php');
-				break;
-		}
-	}
-
 	/**
-	 * Get the prefix's that can be used on this board
+	 * Get the prefix's that can be used on this board and create the
+	 * style spans that can be used in the template.  Used when showing the
+	 * message index of a board.
 	 *
-	 * @param $topicsinfo
+	 * hook integrate_messageindex_listing called from MessageIndex.controller and
+	 * from our own Prefix.controller.
+	 *
+	 * @param array $topicsinfo
 	 * @throws \Elk_Exception
 	 */
 	public static function messageindex_listing($topicsinfo)
 	{
 		global $context, $board;
 
+		// Prepare to show any topics with prefixes
 		require_once(SUBSDIR . '/TopicPrefix.subs.php');
-
 		topicprefix_showprefix($topicsinfo);
 
+		// Show available prefixes for this board
+		loadLanguage('TopicPrefix');
 		$px_manager = new TopicPrefix();
 		$prefixes = $px_manager->loadPrefixes(null, $board, true);
 		if (!empty($prefixes))
 		{
 			loadTemplate('TopicPrefix');
-			loadLanguage('TopicPrefix');
-
-			Template_Layers::getInstance()->addAfter('boardprefixes', 'topic_listing');
+			Template_Layers::instance()->addAfter('boardprefixes', 'topic_listing');
 
 			$context['prefixes_board_specific'] = array();
 			foreach ($prefixes as $id => $prefix)
@@ -60,25 +52,27 @@ class Topic_Prefix_Integrate
 		}
 	}
 
+	/**
+	 * Add easy topic prefixing to the quick moderation actions
+	 *
+	 * hook integrate_quick_mod_actions called from MessageIndex.controller
+	 */
 	public static function quick_mod_actions()
 	{
-		global $context, $topic, $txt, $board;
+		global $context, $board;
 
 		$context['qmod_actions'][] = 'addprefix';
 
 		$context['can_addprefix'] = allowedTo('moderate_forum');
 
+		loadLanguage('TopicPrefix');
 		$px_manager = new TopicPrefix();
-
-
-		$available_prefixes = $px_manager->loadPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null, $board);
+		$available_prefixes = $px_manager->loadPrefixes(null, $board);
 
 		if (count($available_prefixes) > 1)
 		{
 			$context['available_prefixes'] = $available_prefixes;
 		}
-
-
 	}
 	
 	public static function quick_mod_actions()
@@ -103,10 +97,17 @@ class Topic_Prefix_Integrate
 	
 	
 
+	/**
+	 * Injects the prefix button for a given topic in the topic header bar
+	 *
+	 * hook integrate_display_message_list called from display controller
+	 */
 	public static function display_message_list()
 	{
 		global $context, $topic, $txt;
 
+		// See if this is a prefixed topic
+		loadLanguage('TopicPrefix');
 		$px_manager = new TopicPrefix();
 		$prefixes = $px_manager->getTopicPrefixes(array($topic));
 
@@ -114,12 +115,18 @@ class Topic_Prefix_Integrate
 		{
 			require_once(SUBSDIR . '/TopicPrefix.subs.php');
 			loadCSSFile('TopicPrefix.css');
-			loadLanguage('TopicPrefix');
 
 			$context['num_views_text'] = sprintf($txt['topicprefix_linktree'], topicprefix_prefix_marktup($prefixes[$topic])) . ' ' . $context['num_views_text'];
 		}
 	}
 
+	/**
+	 * Populates the available prefix list and add the selection area for post template use
+	 *
+	 * hook integrate_action_post_after called from the dispatcher after post controller exit
+	 *
+	 * @throws \Elk_Exception
+	 */
 	public static function post_after()
 	{
 		global $context, $topic, $board;
@@ -131,11 +138,7 @@ class Topic_Prefix_Integrate
 			return;
 		}
 
-		// All the template stuff
-		loadTemplate('TopicPrefix');
 		loadLanguage('TopicPrefix');
-		Template_Layers::getInstance()->addAfter('pickprefix', 'postarea');
-
 		$px_manager = new TopicPrefix();
 
 		// If we are editing a message, we may want to know the old prefix
@@ -145,13 +148,38 @@ class Topic_Prefix_Integrate
 		}
 
 		$available_prefixes = $px_manager->loadPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null, $board);
-
 		if (count($available_prefixes) > 1)
 		{
+			loadTemplate('TopicPrefix');
+			loadCSSFile('TopicPrefix.css');
+			Template_Layers::instance()->addAfter('pickprefix', 'postarea');
 			$context['available_prefixes'] = $available_prefixes;
+
+			// Show the prefix preview next to the selection box
+			addInlineJavascript('
+			function showprefix()
+			{
+				var choice = document.forms.postmodify.post_in_board.options[document.forms.postmodify.post_in_board.selectedIndex].value,
+					text = document.forms.postmodify.post_in_board.options[document.forms.postmodify.post_in_board.selectedIndex].text;
+
+				document.getElementById("prefix").className = "prefix_id_" + choice;
+				document.getElementById("prefix").innerHTML = choice === "0" ? "" : text;
+			}
+			
+			showprefix();', true);
 		}
 	}
 
+	/**
+	 * Update the topicPrefix table if this new topic has a prefixed selected or
+	 * unselected
+	 *
+	 * hook integrate_create_topic called from post.subs
+	 *
+	 * @param $msgOptions
+	 * @param $topicOptions
+	 * @param $posterOptions
+	 */
 	public static function create_topic($msgOptions, $topicOptions, $posterOptions)
 	{
 		$prefix_id = isset($_POST['prefix']) ? (int) $_POST['prefix'] : 0;
@@ -160,6 +188,17 @@ class Topic_Prefix_Integrate
 		$prefix->updateTopicPrefix($topicOptions['id'], $prefix_id);
 	}
 
+	/**
+	 * If we are modifying a post, and this is the first post in the topic, show the
+	 * prefix selection box
+	 *
+	 * hook integrate_before_modify_post called from post.subs
+	 * @param $topics_columns
+	 * @param $update_parameters
+	 * @param $msgOptions
+	 * @param $topicOptions
+	 * @param $posterOptions
+	 */
 	public static function before_modify_post($topics_columns, $update_parameters, $msgOptions, $topicOptions, $posterOptions)
 	{
 		$prefix_id = isset($_POST['prefix']) ? (int) $_POST['prefix'] : 0;
@@ -173,6 +212,14 @@ class Topic_Prefix_Integrate
 		}
 	}
 
+	/**
+	 * Adds the prefix menu item under the post settings area
+	 *
+	 * hook integrate_admin_areas add items to the admin menu
+	 *
+	 * @param $admin_areas
+	 * @param $menuOptions
+	 */
 	public static function admin_areas(&$admin_areas, &$menuOptions)
 	{
 		global $txt;
@@ -181,10 +228,15 @@ class Topic_Prefix_Integrate
 		$admin_areas['layout']['areas']['postsettings']['subsections']['prefix'] = array($txt['topicprefix_pickprefixes'], 'manage_prefixes');
 	}
 
+	/**
+	 * Adds our prefix menu pick action to the manage posts controller.
+	 *
+	 * hook integrate_sa_manage_posts called from MangePosts.controller
+	 *
+	 * @param array $subActions
+	 */
 	public static function sa_manage_posts(&$subActions)
 	{
-		global $txt;
-
 		$subActions['prefix'] = array(
 			'function' => 'action_index',
 			'file' => 'ManagePrefix.controller.php',

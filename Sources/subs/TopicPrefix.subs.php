@@ -8,6 +8,14 @@
  * @version 0.0.5
  */
 
+/**
+ * For a given set of topics, load any prefixes they may have and prepare
+ * the template context to show the formatted prefix
+ *
+ * precondition on $context['topics'] being populated via Topic_Util::prepareContext
+ *
+ * @param array $topicsinfo
+ */
 function topicprefix_showprefix($topicsinfo)
 {
 	global $context;
@@ -15,6 +23,7 @@ function topicprefix_showprefix($topicsinfo)
 	$px_manager = new TopicPrefix();
 	$prefixes = $px_manager->getTopicPrefixes(array_keys($topicsinfo));
 	$has_prefix = false;
+
 	foreach ($context['topics'] as $topic => $values)
 	{
 		if (isset($prefixes[$topic]))
@@ -33,6 +42,15 @@ function topicprefix_showprefix($topicsinfo)
 	}
 }
 
+/**
+ * Used to replace the prefix_style template with current prefix data. Prefix_style
+ * is installed by default in $modSettings as
+ * '<span class="topicprefix {prefix_class}">{prefix_link}</span>&nbsp;'
+ *
+ * @param array $prefix_info
+ * @param null|int $board
+ * @return string
+ */
 function topicprefix_prefix_marktup($prefix_info, $board = null)
 {
 	global $settings, $modSettings, $scripturl;

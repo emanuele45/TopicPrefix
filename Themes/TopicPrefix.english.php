@@ -26,13 +26,13 @@ $txt['topicprefix_style_desc'] = 'Or add the code to the custom.css of your them
 note the ID (the number after ".prefix_id_") may differ from the one that will be actually used, check back when you have 
 finished to create the prefix for the correct CSS class name.';
 
-$txt['topicprefix_prefix_text'] = 'Prefix texts';
+$txt['topicprefix_prefix_text'] = 'Prefix Title';
 $txt['all_boards'] = 'All boards';
 $txt['no_boards'] = 'Not used in any board';
 $txt['add_new'] = 'Add new';
 $txt['topicprefix_change_text'] = 'Change text:';
 
-$txt['topicprefix_click_here'] = 'Click here to filter the topics in this board by prefix:';
+$txt['topicprefix_click_here'] = 'Filter the topics by prefix:';
 
 $txt['prefix_style_header'] = 'Style the prefix';
 
