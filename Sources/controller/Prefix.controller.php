@@ -23,6 +23,9 @@ class Prefix_Controller extends Action_Controller
 	/** @var \TopicPrefix */
 	protected $px_manager;
 
+	/**
+	 * All the stuff we always need
+	 */
 	public function pre_dispatch()
 	{
 		loadLanguage('TopicPrefix');
@@ -30,8 +33,13 @@ class Prefix_Controller extends Action_Controller
 
 		$this->px_manager = new TopicPrefix();
 		$this->_base_linktree();
+
+		parent::pre_dispatch();
 	}
 
+	/**
+	 * Build the base breadcrumb for prefixed-topic listings
+	 */
 	private function _base_linktree()
 	{
 		global $context, $txt, $scripturl;
@@ -103,6 +111,10 @@ class Prefix_Controller extends Action_Controller
 	/**
 	 * Show the list of topics in this board, along with any sub-boards.
 	 *
+	 * This is mostly a copy of action_messageindex() from MessageIndex.controller but
+	 * in place of a topic listing from a board, we instead provide a top listing from
+	 * a certain prefix.
+	 *
 	 * @uses MessageIndex template topic_listing sub template
 	 */
 	public function action_prefixedtopics()
@@ -117,68 +129,93 @@ class Prefix_Controller extends Action_Controller
 		$prefix_id = $this->_req->getQuery('id', 'intval', 0);
 		if (empty($prefix_id))
 		{
-			return $this->action_prefixlist();
+			$this->action_prefixlist();
+
+			return;
 		}
 
+		// And the prefix ID best be valid
 		$prefix_info = $this->px_manager->getPrefixDetails($prefix_id);
 		if (empty($prefix_info))
 		{
-			return $this->action_prefixlist();
+			$this->action_prefixlist();
+
+			return;
 		}
 
 		$context['name'] = $prefix_info['text'];
 		$context['sub_template'] = 'topic_listing';
-		$template_layers = Template_Layers::getInstance();
+		$template_layers = Template_Layers::instance();
 
 		// View all the topics, or just a few?
 		$context['topics_per_page'] = empty($modSettings['disableCustomPerPage']) && !empty($options['topics_per_page']) ? $options['topics_per_page'] : $modSettings['defaultMaxTopics'];
 		$context['messages_per_page'] = empty($modSettings['disableCustomPerPage']) && !empty($options['messages_per_page']) ? $options['messages_per_page'] : $modSettings['defaultMaxMessages'];
-		$maxindex = isset($_REQUEST['all']) && !empty($modSettings['enableAllMessages']) ? $prefix_info['count'] : $context['topics_per_page'];
+		$maxindex = isset($this->_req->query->all) && !empty($modSettings['enableAllMessages']) ? $prefix_info['count'] : $context['topics_per_page'];
 
-		if (!empty($_REQUEST['start']) && (!is_numeric($_REQUEST['start']) || $_REQUEST['start'] % $context['messages_per_page'] != 0))
+		// Right, let's only index normal stuff!
+		$session_name = session_name();
+		foreach ($this->_req->query as $k => $v)
+		{
+			// Don't index a sort result etc.
+			if (!in_array($k, array('start', $session_name)))
+			{
+				$context['robot_no_index'] = true;
+			}
+		}
+
+		if (!empty($this->_req->query->start) && (!is_numeric($this->_req->query->start) || $this->_req->query->start % $context['messages_per_page'] != 0))
 		{
 			$context['robot_no_index'] = true;
 		}
 
+		// And now, what we're here for: topics!
+		require_once(SUBSDIR . '/MessageIndex.subs.php');
+
+		// Known sort methods.
+		$sort_methods = messageIndexSort();
+		$default_sort_method = 'last_post';
+
 		// We only know these.
-		if (isset($_REQUEST['sort']) && !in_array($_REQUEST['sort'], array('subject', 'starter', 'last_poster', 'replies', 'views', 'likes', 'first_post', 'last_post')))
+		if (isset($this->_req->query->sort) && !isset($sort_methods[$this->_req->query->sort]))
 		{
-			$_REQUEST['sort'] = 'last_post';
+			$this->_req->query->sort = $default_sort_method;
 		}
 
 		// Make sure the starting place makes sense and construct the page index.
-		if (isset($_REQUEST['sort']))
+		if (isset($this->_req->query->sort))
 		{
-			$context['page_index'] = constructPageIndex($scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.%1$d;sort=' . $_REQUEST['sort'] . (isset($_REQUEST['desc']) ? ';desc' : ''), $_REQUEST['start'], $prefix_info['count'], $maxindex, true);
+			$sort_string = ';sort=' . $this->_req->query->sort . (isset($this->_req->query->desc) ? ';desc' : '');
 		}
 		else
 		{
-			$context['page_index'] = constructPageIndex($scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.%1$d', $_REQUEST['start'], $prefix_info['count'], $maxindex, true);
+			$sort_string = '';
 		}
 
-		$context['start'] = &$_REQUEST['start'];
+		$context['page_index'] = constructPageIndex($scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.%1$d' . $sort_string, $this->_req->query->start, $prefix_info['count'], $maxindex);
+		$context['start'] = &$this->_req->query->start;
 
 		// Set a canonical URL for this page.
 		$context['canonical_url'] = $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.' . $context['start'];
 
 		$context['links'] += array(
-			'prev' => $_REQUEST['start'] >= $context['topics_per_page'] ? $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.' . ($_REQUEST['start'] - $context['topics_per_page']) : '',
-			'next' => $_REQUEST['start'] + $context['topics_per_page'] < $prefix_info['count'] ? $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.' . ($_REQUEST['start'] + $context['topics_per_page']) : '',
+			'prev' => $this->_req->query->start >= $context['topics_per_page'] ? $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.' . ($this->_req->query->start - $context['topics_per_page']) : '',
+			'next' => $this->_req->query->start + $context['topics_per_page'] < $prefix_info['count'] ? $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.' . ($this->_req->query->start + $context['topics_per_page']) : '',
 		);
 
 		$context['page_info'] = array(
-			'current_page' => $_REQUEST['start'] / $context['topics_per_page'] + 1,
+			'current_page' => $this->_req->query->start / $context['topics_per_page'] + 1,
 			'num_pages' => floor(($prefix_info['count'] - 1) / $context['topics_per_page']) + 1
 		);
 
-		if (isset($_REQUEST['all']) && !empty($modSettings['enableAllMessages']) && $maxindex > $modSettings['enableAllMessages'])
+		if (isset($this->_req->query->all) && !empty($modSettings['enableAllMessages']) && $maxindex > $modSettings['enableAllMessages'])
 		{
 			$maxindex = $modSettings['enableAllMessages'];
-			$_REQUEST['start'] = 0;
+			$this->_req->query->start = 0;
 		}
 
 		$context['page_title'] = strip_tags(sprintf($txt['topicprefix_pagetitle'], $prefix_info['text'], (int) $context['page_info']['current_page']));
 
+		// Show which prefix we are sorted by in the breadcrumbs
 		$context['linktree'][] = array(
 			'url' => $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.0',
 			'name' => strip_tags(sprintf($txt['topicprefix_linktree'], $prefix_info['text']))
@@ -191,24 +228,19 @@ class Prefix_Controller extends Action_Controller
 		$context['can_moderate_forum'] = allowedTo('moderate_forum');
 		$context['can_approve_posts'] = allowedTo('approve_posts');
 
-		// And now, what we're here for: topics!
-		require_once(SUBSDIR . '/MessageIndex.subs.php');
-
-		// Known sort methods.
-		$sort_methods = messageIndexSort();
-
 		// They didn't pick one, default to by last post descending.
-		if (!isset($_REQUEST['sort']) || !isset($sort_methods[$_REQUEST['sort']]))
+		if (!isset($this->_req->query->sort) || !isset($sort_methods[$this->_req->query->sort]))
 		{
-			$context['sort_by'] = 'last_post';
-			$ascending = isset($_REQUEST['asc']);
+			$context['sort_by'] = $default_sort_method;
+			$ascending = isset($this->_req->query->asc);
 		}
-		// Otherwise default to ascending.
+		// Otherwise sort by user selection and default to ascending.
 		else
 		{
-			$context['sort_by'] = $_REQUEST['sort'];
-			$ascending = !isset($_REQUEST['desc']);
+			$context['sort_by'] = $this->_req->query->sort;
+			$ascending = !isset($this->_req->query->desc);
 		}
+
 		$sort_column = $sort_methods[$context['sort_by']];
 
 		$context['sort_direction'] = $ascending ? 'up' : 'down';
@@ -219,14 +251,28 @@ class Prefix_Controller extends Action_Controller
 
 		foreach ($sort_methods as $key => $val)
 		{
-			$context['topics_headers'][$key] = array(
-				'url' => $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.' . $context['start'] . ';sort=' . $key . ($context['sort_by'] == $key && $context['sort_direction'] == 'up' ? ';desc' : ''),
-				'sort_dir_img' => $context['sort_by'] == $key ? '<img class="sort" src="' . $settings['images_url'] . '/sort_' . $context['sort_direction'] . '.png" alt="" title="' . $context['sort_title'] . '" />' : '',
-			);
+			foreach ($sort_methods as $key => $val)
+			{
+				switch ($key)
+				{
+					case 'subject':
+					case 'starter':
+					case 'last_poster':
+						$sorticon = 'alpha';
+						break;
+					default:
+						$sorticon = 'numeric';
+				}
+
+				$context['topics_headers'][$key] = array(
+					'url' => $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.' . $context['start'] . ';sort=' . $key . ($context['sort_by'] == $key && $context['sort_direction'] === 'up' ? ';desc' : ''),
+					'sort_dir_img' => $context['sort_by'] == $key ? '<i class="icon icon-small i-sort-' . $sorticon . '-' . $context['sort_direction'] . '" title="' . $context['sort_title'] . '"><s>' . $context['sort_title'] . '</s></i>' : '',
+				);
+			}
 		}
 
 		// Calculate the fastest way to get the topics.
-		$start = (int) $_REQUEST['start'];
+		$start = (int) $this->_req->query->start;
 		if ($start > ($prefix_info['count'] - 1) / 2)
 		{
 			$ascending = !$ascending;
@@ -261,173 +307,7 @@ class Prefix_Controller extends Action_Controller
 
 		$topics_info = $this->px_manager->getPrefixedTopics($prefix_id, $user_info['id'], $start, $maxindex, $context['sort_by'], $sort_column, $indexOptions);
 
-		// Prepare for links to guests (for search engines)
-		$context['pageindex_multiplier'] = empty($modSettings['disableCustomPerPage']) && !empty($options['messages_per_page']) ? $options['messages_per_page'] : $modSettings['defaultMaxMessages'];
-
-		// Begin 'printing' the message index for current board.
-		foreach ($topics_info as $row)
-		{
-			$topic_ids[] = $row['id_topic'];
-
-			// Do they want message previews?
-			if (!empty($modSettings['message_index_preview']))
-			{
-				// Limit them to $modSettings['preview_characters'] characters
-				$row['first_body'] = strip_tags(strtr(parse_bbc($row['first_body'], false, $row['id_first_msg']), array('<br />' => "\n", '&nbsp;' => ' ')));
-				$row['first_body'] = Util::shorten_text($row['first_body'], !empty($modSettings['preview_characters']) ? $modSettings['preview_characters'] : 128, true);
-
-				// No reply then they are the same, no need to process it again
-				if ($row['num_replies'] == 0)
-				{
-					$row['last_body'] == $row['first_body'];
-				}
-				else
-				{
-					$row['last_body'] = strip_tags(strtr(parse_bbc($row['last_body'], false, $row['id_last_msg']), array('<br />' => "\n", '&nbsp;' => ' ')));
-					$row['last_body'] = Util::shorten_text($row['last_body'], !empty($modSettings['preview_characters']) ? $modSettings['preview_characters'] : 128, true);
-				}
-
-				// Censor the subject and message preview.
-				censorText($row['first_subject']);
-				censorText($row['first_body']);
-
-				// Don't censor them twice!
-				if ($row['id_first_msg'] == $row['id_last_msg'])
-				{
-					$row['last_subject'] = $row['first_subject'];
-					$row['last_body'] = $row['first_body'];
-				}
-				else
-				{
-					censorText($row['last_subject']);
-					censorText($row['last_body']);
-				}
-			}
-			else
-			{
-				$row['first_body'] = '';
-				$row['last_body'] = '';
-				censorText($row['first_subject']);
-
-				if ($row['id_first_msg'] == $row['id_last_msg'])
-				{
-					$row['last_subject'] = $row['first_subject'];
-				}
-				else
-				{
-					censorText($row['last_subject']);
-				}
-			}
-
-			// Decide how many pages the topic should have.
-			if ($row['num_replies'] + 1 > $context['messages_per_page'])
-			{
-				// We can't pass start by reference.
-				$start = -1;
-				$pages = constructPageIndex($scripturl . '?topic=' . $row['id_topic'] . '.%1$d', $start, $row['num_replies'] + 1, $context['messages_per_page'], true, array('prev_next' => false, 'all' => !empty($modSettings['enableAllMessages']) && $row['num_replies'] + 1 < $modSettings['enableAllMessages']));
-			}
-			else
-			{
-				$pages = '';
-			}
-
-			// We need to check the topic icons exist...
-			if (!empty($modSettings['messageIconChecks_enable']))
-			{
-				if (!isset($context['icon_sources'][$row['first_icon']]))
-				{
-					$context['icon_sources'][$row['first_icon']] = file_exists($settings['theme_dir'] . '/images/post/' . $row['first_icon'] . '.png') ? 'images_url' : 'default_images_url';
-				}
-
-				if (!isset($context['icon_sources'][$row['last_icon']]))
-				{
-					$context['icon_sources'][$row['last_icon']] = file_exists($settings['theme_dir'] . '/images/post/' . $row['last_icon'] . '.png') ? 'images_url' : 'default_images_url';
-				}
-			}
-			else
-			{
-				if (!isset($context['icon_sources'][$row['first_icon']]))
-				{
-					$context['icon_sources'][$row['first_icon']] = 'images_url';
-				}
-
-				if (!isset($context['icon_sources'][$row['last_icon']]))
-				{
-					$context['icon_sources'][$row['last_icon']] = 'images_url';
-				}
-			}
-
-			// 'Print' the topic info.
-			$context['topics'][$row['id_topic']] = array(
-				'id' => $row['id_topic'],
-				'first_post' => array(
-					'id' => $row['id_first_msg'],
-					'member' => array(
-						'username' => $row['first_member_name'],
-						'name' => $row['first_display_name'],
-						'id' => $row['first_id_member'],
-						'href' => !empty($row['first_id_member']) ? $scripturl . '?action=profile;u=' . $row['first_id_member'] : '',
-						'link' => !empty($row['first_id_member']) ? '<a href="' . $scripturl . '?action=profile;u=' . $row['first_id_member'] . '" title="' . $txt['profile_of'] . ' ' . $row['first_display_name'] . '" class="preview">' . $row['first_display_name'] . '</a>' : $row['first_display_name']
-					),
-					'time' => standardTime($row['first_poster_time']),
-					'html_time' => htmlTime($row['first_poster_time']),
-					'timestamp' => forum_time(true, $row['first_poster_time']),
-					'subject' => $row['first_subject'],
-					'preview' => trim($row['first_body']),
-					'icon' => $row['first_icon'],
-					'icon_url' => $settings[$context['icon_sources'][$row['first_icon']]] . '/post/' . $row['first_icon'] . '.png',
-					'href' => $scripturl . '?topic=' . $row['id_topic'] . '.0',
-					'link' => '<a href="' . $scripturl . '?topic=' . $row['id_topic'] . '.0">' . $row['first_subject'] . '</a>'
-				),
-				'last_post' => array(
-					'id' => $row['id_last_msg'],
-					'member' => array(
-						'username' => $row['last_member_name'],
-						'name' => $row['last_display_name'],
-						'id' => $row['last_id_member'],
-						'href' => !empty($row['last_id_member']) ? $scripturl . '?action=profile;u=' . $row['last_id_member'] : '',
-						'link' => !empty($row['last_id_member']) ? '<a href="' . $scripturl . '?action=profile;u=' . $row['last_id_member'] . '">' . $row['last_display_name'] . '</a>' : $row['last_display_name']
-					),
-					'time' => standardTime($row['last_poster_time']),
-					'html_time' => htmlTime($row['last_poster_time']),
-					'timestamp' => forum_time(true, $row['last_poster_time']),
-					'subject' => $row['last_subject'],
-					'preview' => trim($row['last_body']),
-					'icon' => $row['last_icon'],
-					'icon_url' => $settings[$context['icon_sources'][$row['last_icon']]] . '/post/' . $row['last_icon'] . '.png',
-					'href' => $scripturl . '?topic=' . $row['id_topic'] . ($user_info['is_guest'] ? ('.' . (!empty($options['view_newest_first']) ? 0 : ((int) (($row['num_replies']) / $context['pageindex_multiplier'])) * $context['pageindex_multiplier']) . '#msg' . $row['id_last_msg']) : (($row['num_replies'] == 0 ? '.0' : '.msg' . $row['id_last_msg']) . '#new')),
-					'link' => '<a href="' . $scripturl . '?topic=' . $row['id_topic'] . ($user_info['is_guest'] ? ('.' . (!empty($options['view_newest_first']) ? 0 : ((int) (($row['num_replies']) / $context['pageindex_multiplier'])) * $context['pageindex_multiplier']) . '#msg' . $row['id_last_msg']) : (($row['num_replies'] == 0 ? '.0' : '.msg' . $row['id_last_msg']) . '#new')) . '" ' . ($row['num_replies'] == 0 ? '' : 'rel="nofollow"') . '>' . $row['last_subject'] . '</a>'
-				),
-				'default_preview' => trim($row[!empty($modSettings['message_index_preview']) && $modSettings['message_index_preview'] == 2 ? 'last_body' : 'first_body']),
-				'is_sticky' => !empty($modSettings['enableStickyTopics']) && !empty($row['is_sticky']),
-				'is_locked' => !empty($row['locked']),
-				'is_poll' => !empty($modSettings['pollMode']) && $row['id_poll'] > 0,
-				'is_hot' => !empty($modSettings['useLikesNotViews']) ? $row['num_likes'] >= $modSettings['hotTopicPosts'] : $row['num_replies'] >= $modSettings['hotTopicPosts'],
-				'is_very_hot' => !empty($modSettings['useLikesNotViews']) ? $row['num_likes'] >= $modSettings['hotTopicVeryPosts'] : $row['num_replies'] >= $modSettings['hotTopicVeryPosts'],
-				'is_posted_in' => false,
-				'icon' => $row['first_icon'],
-				'icon_url' => $settings[$context['icon_sources'][$row['first_icon']]] . '/post/' . $row['first_icon'] . '.png',
-				'subject' => $row['first_subject'],
-				'new' => $row['new_from'] <= $row['id_msg_modified'],
-				'new_from' => $row['new_from'],
-				'newtime' => $row['new_from'],
-				'new_href' => $scripturl . '?topic=' . $row['id_topic'] . '.msg' . $row['new_from'] . '#new',
-				'redir_href' => !empty($row['id_redirect_topic']) ? $scripturl . '?topic=' . $row['id_topic'] . '.0;noredir' : '',
-				'pages' => $pages,
-				'replies' => comma_format($row['num_replies']),
-				'views' => comma_format($row['num_views']),
-				'likes' => comma_format($row['num_likes']),
-				'approved' => $row['approved'],
-				'unapproved_posts' => $row['unapproved_posts'],
-			);
-
-			if (!empty($settings['avatars_on_indexes']))
-			{
-				$context['topics'][$row['id_topic']]['last_post']['member']['avatar'] = determineAvatar($row);
-			}
-
-			determineTopicClass($context['topics'][$row['id_topic']]);
-		}
+		$context['topics'] = Topic_Util::prepareContext($topics_info, false, !empty($modSettings['preview_characters']) ? $modSettings['preview_characters'] : 128);
 
 		// Allow addons to add to the $context['topics']
 		call_integration_hook('integrate_messageindex_listing', array($topics_info));
@@ -495,21 +375,21 @@ class Prefix_Controller extends Action_Controller
 		$context['no_topic_listing'] = false;
 		$template_layers->add('topic_listing');
 		/*
-				addJavascriptVar(array('notification_board_notice' => $context['is_marked_notify'] ? $txt['notification_disable_board'] : $txt['notification_enable_board']), true);
+		addJavascriptVar(array('notification_board_notice' => $context['is_marked_notify'] ? $txt['notification_disable_board'] : $txt['notification_enable_board']), true);
 
-				// Build the message index button array.
-				$context['normal_buttons'] = array(
-					'new_topic' => array('test' => 'can_post_new', 'text' => 'new_topic', 'image' => 'new_topic.png', 'lang' => true, 'url' => $scripturl . '?action=post;board=' . $context['current_board'] . '.0', 'active' => true),
-					'notify' => array('test' => 'can_mark_notify', 'text' => $context['is_marked_notify'] ? 'unnotify' : 'notify', 'image' => ($context['is_marked_notify'] ? 'un' : ''). 'notify.png', 'lang' => true, 'custom' => 'onclick="return notifyboardButton(this);"', 'url' => $scripturl . '?action=notifyboard;sa=' . ($context['is_marked_notify'] ? 'off' : 'on') . ';board=' . $context['current_board'] . '.' . $context['start'] . ';' . $context['session_var'] . '=' . $context['session_id']),
-				);
+		// Build the message index button array.
+		$context['normal_buttons'] = array(
+			'new_topic' => array('test' => 'can_post_new', 'text' => 'new_topic', 'image' => 'new_topic.png', 'lang' => true, 'url' => $scripturl . '?action=post;board=' . $context['current_board'] . '.0', 'active' => true),
+			'notify' => array('test' => 'can_mark_notify', 'text' => $context['is_marked_notify'] ? 'unnotify' : 'notify', 'image' => ($context['is_marked_notify'] ? 'un' : ''). 'notify.png', 'lang' => true, 'custom' => 'onclick="return notifyboardButton(this);"', 'url' => $scripturl . '?action=notifyboard;sa=' . ($context['is_marked_notify'] ? 'off' : 'on') . ';board=' . $context['current_board'] . '.' . $context['start'] . ';' . $context['session_var'] . '=' . $context['session_id']),
+		);
 
-				// They can only mark read if they are logged in and it's enabled!
-				if (!$user_info['is_guest'] && $settings['show_mark_read'])
-					$context['normal_buttons']['markread'] = array('text' => 'mark_read_short', 'image' => 'markread.png', 'lang' => true, 'url' => $scripturl . '?action=markasread;sa=board;board=' . $context['current_board'] . '.0;' . $context['session_var'] . '=' . $context['session_id'], 'custom' => 'onclick="return markboardreadButton(this);"');
+		// They can only mark read if they are logged in and it's enabled!
+		if (!$user_info['is_guest'] && $settings['show_mark_read'])
+			$context['normal_buttons']['markread'] = array('text' => 'mark_read_short', 'image' => 'markread.png', 'lang' => true, 'url' => $scripturl . '?action=markasread;sa=board;board=' . $context['current_board'] . '.0;' . $context['session_var'] . '=' . $context['session_id'], 'custom' => 'onclick="return markboardreadButton(this);"');
 
-				// Allow adding new buttons easily.
-				call_integration_hook('integrate_messageindex_buttons');
-				*/
+		// Allow adding new buttons easily.
+		call_integration_hook('integrate_messageindex_buttons');
+		*/
 	}
 
 	/**

@@ -61,6 +61,9 @@ function template_boardprefixes_above()
 	</div>';
 }
 
+/**
+ * Main template for the manage prefix section in the ACP
+ */
 function template_manage_topicprefix()
 {
 	global $context, $txt, $modSettings;

@@ -291,7 +291,7 @@ class ManagePrefix_Controller extends Action_Controller
 		global $context, $db_show_debug;
 
 		// Make room for ajax
-		Template_Layers::getInstance()->removeAll();
+		Template_Layers::instance()->removeAll();
 		loadTemplate('Json');
 		$context['sub_template'] = 'send_json';
 		$context['json_data'] = array(
@@ -333,7 +333,7 @@ class ManagePrefix_Controller extends Action_Controller
 
 		// Time to cough this back up for display in the popup
 		loadTemplate('TopicPrefix');
-		Template_Layers::getInstance()->removeAll();
+		Template_Layers::instance()->removeAll();
 		$context['sub_template'] = 'prefix_picker_popup';
 	}
 
@@ -358,7 +358,7 @@ class ManagePrefix_Controller extends Action_Controller
 		$this->getBoards();
 
 		// For the ajax template
-		Template_Layers::getInstance()->removeAll();
+		Template_Layers::instance()->removeAll();
 		$this->_loadTemplate();
 		$context['sub_template'] = 'prefix_boardspicker_popup';
 	}
