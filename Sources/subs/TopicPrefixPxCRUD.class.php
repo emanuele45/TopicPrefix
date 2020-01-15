@@ -10,6 +10,8 @@
 
 class TopicPrefix_PxCRUD
 {
+	protected $db;
+
 	public function __construct()
 	{
 		$this->db = database();

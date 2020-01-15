@@ -564,16 +564,7 @@ class TopicPrefix
 
 		$file_content = file_get_contents($file);
 
-		// Append a new style
-		if ($old_style === '')
-		{
-			$new_content = $file_content . "\n" . $style;
-		}
-		// Replace an existing one
-		else
-		{
-			$new_content = str_replace($old_style, $style, $file_content);
-		}
+		$new_content = $old_style === '' ? $file_content . "\n" . $style : str_replace($old_style, $style, $file_content);
 
 		file_put_contents($file, $new_content, LOCK_EX);
 
@@ -702,8 +693,7 @@ class TopicPrefix
 	{
 		$style = trim($style);
 		$style = trim(substr($style, strpos($style, '{') + 1));
-		$style = trim(substr($style, 0, strpos($style, '}')));
 
-		return $style;
+		return trim(substr($style, 0, strpos($style, '}')));
 	}
 }

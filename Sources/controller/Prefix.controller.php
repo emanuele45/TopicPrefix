@@ -251,24 +251,21 @@ class Prefix_Controller extends Action_Controller
 
 		foreach ($sort_methods as $key => $val)
 		{
-			foreach ($sort_methods as $key => $val)
+			switch ($key)
 			{
-				switch ($key)
-				{
-					case 'subject':
-					case 'starter':
-					case 'last_poster':
-						$sorticon = 'alpha';
-						break;
-					default:
-						$sorticon = 'numeric';
-				}
-
-				$context['topics_headers'][$key] = array(
-					'url' => $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.' . $context['start'] . ';sort=' . $key . ($context['sort_by'] == $key && $context['sort_direction'] === 'up' ? ';desc' : ''),
-					'sort_dir_img' => $context['sort_by'] == $key ? '<i class="icon icon-small i-sort-' . $sorticon . '-' . $context['sort_direction'] . '" title="' . $context['sort_title'] . '"><s>' . $context['sort_title'] . '</s></i>' : '',
-				);
+				case 'subject':
+				case 'starter':
+				case 'last_poster':
+					$sorticon = 'alpha';
+					break;
+				default:
+					$sorticon = 'numeric';
 			}
+
+			$context['topics_headers'][$key] = array(
+				'url' => $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.' . $context['start'] . ';sort=' . $key . ($context['sort_by'] == $key && $context['sort_direction'] === 'up' ? ';desc' : ''),
+				'sort_dir_img' => $context['sort_by'] == $key ? '<i class="icon icon-small i-sort-' . $sorticon . '-' . $context['sort_direction'] . '" title="' . $context['sort_title'] . '"><s>' . $context['sort_title'] . '</s></i>' : '',
+			);
 		}
 
 		// Calculate the fastest way to get the topics.
