@@ -31,6 +31,7 @@ $txt['all_boards'] = 'All boards';
 $txt['no_boards'] = 'Not used in any board';
 $txt['add_new'] = 'Add new';
 $txt['topicprefix_change_text'] = 'Change text:';
+$txt['topicprefix_delete_confirm'] = 'Are you sure? This will remove the prefix from the system and from any topics that used it.';
 
 $txt['topicprefix_click_here'] = 'Filter the topics by prefix:';
 
@@ -46,3 +47,5 @@ $txt['prefix_error_customcss'] = 'Error: File does not exist/not writable: ';
 $txt['prefix_name'] = 'Prefix Name';
 $txt['prefix_num_topics'] = '# of Topics';
 $txt['prefix_link'] = 'Link';
+
+$txt['prefix_usage'] = 'Total uses: ';

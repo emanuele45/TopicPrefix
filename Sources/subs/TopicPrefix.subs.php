@@ -70,9 +70,14 @@ function topicprefix_prefix_marktup($prefix_info, $board = null)
 		'{prefix_class}',
 	);
 
+	// Set the no prefix link back to the board index
+	$sa_link = $prefix_info['id_prefix'] === 0
+		? '?board=' . $board . '.0'
+		: '?action=prefix;sa=prefixedtopics;id=' . $prefix_info['id_prefix'] . ($board === null ? '' : ';board=' . $board);
+
 	$replace = array(
 		$prefix_info['prefix'],
-		'<a href="' . $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_info['id_prefix'] . ($board === null ? '' : ';board=' . $board) . '">' . $prefix_info['prefix'] . '</a>',
+		'<a href="' . $scripturl . $sa_link . '">' . $prefix_info['prefix'] . '</a>',
 		'prefix_id_' . $prefix_info['id_prefix'],
 	);
 

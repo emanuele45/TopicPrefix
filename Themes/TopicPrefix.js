@@ -17,7 +17,7 @@ $(document).ready(function ()
 		sAjax_indicator = '<div class="centertext"><i class="icon icon-spin i-spinner"></i></div>';
 
 	// The save icon, looks like a floppy disk ... what ?
-	var $icon = $('<i class="icon i-save success"></i>').click(function (e)
+	var $icon = $('<i class="icon i-save success"></i>').click(function ()
 	{
 		var $icon = $(this);
 
@@ -44,27 +44,20 @@ $(document).ready(function ()
 				{
 					$icon.removeClass('softalert').addClass('success');
 				}
-				// Some failure trying to process the request
-				else
-				{
-					alert(resp.error);
-				}
 			})
 			.fail(function (err, textStatus, errorThrown)
 			{
 				if ('console' in window)
 				{
-					window.console.error('Error:', textStatus, errorThrown.name);
+					window.console.error('Error: ', textStatus, errorThrown.name);
 					window.console.error(err.responseText);
 				}
-				else
-					alert(err.responseText);
 			});
 		}
 	});
 
 	// The eyedropper style editor icon
-	var $style = $('<i class="icon i-eyedropper success"></i>').click(function (e)
+	var $style = $('<i class="icon i-eyedropper success"></i>').click(function ()
 	{
 		var $stylebtn = $(this),
 			stylePicker = new smc_Popup({
@@ -79,7 +72,7 @@ $(document).ready(function ()
 			url: elk_scripturl + '?action=admin;area=postsettings;sa=prefix;do=picker;xml;api=xml',
 			type: 'POST',
 			dataType: 'html',
-			data: {pid: $stylebtn.data('pid')},
+			data: {pid: $stylebtn.data('pid')}
 		})
 		.done(function (resp)
 		{
@@ -123,24 +116,7 @@ $(document).ready(function ()
 					values[elk_session_var] = elk_session_id;
 					values['pid'] = $stylebtn.data('pid');
 					values['prefix_name'] = $stylebtn.data('value');
-					console.log(values);
-/*
-style_picker_vals:
-background: "#80ff80"
-border-color: "#000000"
-border-radius: "4px"
-border-style: "4"
-border-width: "1px"
-box-shadow: ""
-color: "#000000"
-default_background: 0
-default_border-color: 1
-default_color: 1
-font-size: "6"
-margin: ""
-padding: "2px"
-text-shadow: ""
-*/
+
 					// Saves the styles applied
 					$.ajax({
 						url: elk_scripturl + '?action=admin;area=postsettings;sa=prefix;do=savestyles;xml;api=json',
@@ -156,21 +132,14 @@ text-shadow: ""
 						{
 							stylePicker.hide();
 						}
-						// Some failure trying to process the request
-						else
-						{
-							alert(resp.error);
-						}
 					})
 					.fail(function (err, textStatus, errorThrown)
 					{
 						if ('console' in window)
 						{
-							window.console.error('Error:', textStatus, errorThrown.name);
+							window.console.error('Error: ', textStatus, errorThrown.name);
 							window.console.error(err.responseText);
 						}
-						else
-							alert(err.responseText);
 					})
 				})
 			).after(
@@ -194,7 +163,7 @@ text-shadow: ""
 							return;
 						}
 
-						if ((!defaults.hasOwnProperty(name) || (defaults.hasOwnProperty(name) && defaults[name] == false)) && ($elem.val() != '' && $elem.val() != 0))
+						if ((!defaults.hasOwnProperty(name) || (defaults.hasOwnProperty(name) && defaults[name] === false)) && ($elem.val() !== '' && $elem.val() !== 0))
 						{
 							if ($elem.is('input'))
 							{
@@ -215,16 +184,14 @@ text-shadow: ""
 		{
 			if ('console' in window)
 			{
-				window.console.error('Error:', textStatus, errorThrown.name);
+				window.console.error('Error: ', textStatus, errorThrown.name);
 				window.console.error(err.responseText);
 			}
-			else
-				alert(err.responseText);
 		});
 	});
 
 	// The board picker button
-	var $boards = $('<i class="icon i-checkbox success"></i>').click(function (e)
+	var $boards = $('<i class="icon i-checkbox success"></i>').click(function ()
 	{
 		var $boardsbtn = $(this),
 			stylePicker = new smc_Popup({
@@ -239,8 +206,7 @@ text-shadow: ""
 			url: elk_scripturl + '?action=admin;area=postsettings;sa=prefix;do=pickboards;xml;api=xml',
 			type: 'POST',
 			dataType: 'html',
-			data: {pid: $boardsbtn.data('pid')},
-			cache: false
+			data: {pid: $boardsbtn.data('pid')}
 		})
 		.done(function (resp)
 		{
@@ -249,7 +215,7 @@ text-shadow: ""
 			stylePicker.body($content);
 
 			// Add a way to save the form
-			$content.last().after($('<input class="right_submit" />')
+			$content.find('fieldset').last().after($('<input class="right_submit" />')
 				.attr('type', 'submit')
 				.val(prefix_save_button)
 				.click(function ()
@@ -282,11 +248,6 @@ text-shadow: ""
 						{
 							stylePicker.hide();
 						}
-						// Some failure trying to process the request
-						else
-						{
-							alert(resp.error);
-						}
 					})
 					.fail(function (err, textStatus, errorThrown)
 					{
@@ -296,8 +257,6 @@ text-shadow: ""
 							window.console.error('Error:', textStatus, errorThrown.name);
 							window.console.error(err.responseText);
 						}
-						else
-							alert(err.responseText);
 					})
 				})
 			);
@@ -310,9 +269,45 @@ text-shadow: ""
 				window.console.error('Error:', textStatus, errorThrown.name);
 				window.console.error(err.responseText);
 			}
-			else
-				alert(err.responseText);
 		});
+	});
+
+	// The delete prefix trashcan
+	var $trashcan = $('<i class="icon i-delete"></i>').click(function ()
+	{
+		var $trashcan = $(this);
+
+		var values = {
+			pid: $trashcan.data('pid'),
+			prefix_name: $trashcan.data('value')
+		};
+		values[elk_session_var] = elk_session_id;
+		if (confirm(prefix_delete_confirm))
+		{
+			$.ajax({
+				url: elk_scripturl + '?action=admin;area=postsettings;sa=prefix;do=deleteprefix;xml;api=json',
+				type: 'POST',
+				dataType: 'json',
+				data: values,
+			})
+			.done(function (resp)
+			{
+				// json response from the server says success?
+				if (resp.success === true)
+				{
+					$trashcan.parent().next('dd').remove();
+					$trashcan.parent().remove();
+				}
+			})
+			.fail(function (err, textStatus, errorThrown)
+			{
+				if ('console' in window)
+				{
+					window.console.error('Error: ', textStatus, errorThrown.name);
+					window.console.error(err.responseText);
+				}
+			});
+		}
 	});
 
 	// For each topicprefix, add the editing icons + onchange event for the name
@@ -322,6 +317,7 @@ text-shadow: ""
 			sValue = $(this).val();
 
 		$(this)
+			.after($trashcan.clone(true).data('pid', name).data('value', sValue))
 			.after($boards.clone(true).data('pid', name).data('value', sValue))
 			.after($style.clone(true).data('pid', name).data('value', sValue))
 			.after($icon.clone(true).data('pid', name).data('value', sValue))

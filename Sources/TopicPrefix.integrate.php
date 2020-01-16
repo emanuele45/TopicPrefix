@@ -38,8 +38,15 @@ class Topic_Prefix_Integrate
 		// Show available prefixes for this board
 		loadLanguage('TopicPrefix');
 		$px_manager = new TopicPrefix();
-		$prefixes = $px_manager->loadPrefixes(null, $board, true);
-		if (!empty($prefixes))
+		$prefixes = $px_manager->loadPrefixes(null, $board, false);
+
+		// Only show the no prefix option when we are in a filtered prefix view
+		if ($context['current_subaction'] === null)
+		{
+			$prefixes = array_slice($prefixes, 1, null, true);
+		}
+
+		if (count($prefixes) !== 0)
 		{
 			loadTemplate('TopicPrefix');
 			Template_Layers::instance()->addAfter('boardprefixes', 'topic_listing');
@@ -129,25 +136,11 @@ class Topic_Prefix_Integrate
 	 */
 	public static function post_after()
 	{
-		global $context, $topic, $board;
+		global $context;
 
-		// This has a meaning only for first posts
-		// that means new topics or editing the first message
-		if (!$context['is_first_post'])
-		{
-			return;
-		}
-
-		loadLanguage('TopicPrefix');
 		$px_manager = new TopicPrefix();
+		$available_prefixes = $px_manager->loadAll();
 
-		// If we are editing a message, we may want to know the old prefix
-		if (isset($_REQUEST['msg']))
-		{
-			$prefix = $px_manager->getTopicPrefixes($topic);
-		}
-
-		$available_prefixes = $px_manager->loadPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null, $board);
 		if (count($available_prefixes) > 1)
 		{
 			loadTemplate('TopicPrefix');
@@ -193,6 +186,7 @@ class Topic_Prefix_Integrate
 	 * prefix selection box
 	 *
 	 * hook integrate_before_modify_post called from post.subs
+	 *
 	 * @param $topics_columns
 	 * @param $update_parameters
 	 * @param $msgOptions

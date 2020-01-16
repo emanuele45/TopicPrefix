@@ -2,6 +2,10 @@
 	position: relative;
 }
 
+.prefix_id_0 {
+	font-weight: 600;
+}
+
 .managetopicprefix .edit {
 	float: right;
 }

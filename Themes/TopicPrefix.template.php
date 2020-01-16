@@ -101,6 +101,9 @@ function template_manage_topicprefix()
 				$pos++;
 				echo $board['name'], $count == $pos ? '' : ', ';
 			}
+
+			echo '<span class="floatright">
+				&nbsp;' . $txt['prefix_usage'] . ' ( <strong>' . $prefix['count'] . '</strong> )</span>';
 		}
 
 		echo '

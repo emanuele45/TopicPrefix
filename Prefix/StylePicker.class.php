@@ -27,7 +27,7 @@ class StylePicker
 			'font-size' => array(
 				'value' => '',
 				'type' => 'select',
-				'values' => array('', '4px', '6px', '8px', '10px', '12px', '14px'),
+				'values' => array('', '4px', '6px', '8px', '10px', '12px', '14px', '16px'),
 			),
 			'text-shadow' => array(
 				'value' => '',
@@ -40,7 +40,7 @@ class StylePicker
 				'value' => '',
 				'type' => 'text',
 				'validate' => function ($val, $validator) {
-					return $this->validateShadows($val, $validator);
+					return $this->validateShadows($val, $validator, 'box');
 				},
 			),
 			'padding' => array(
@@ -103,12 +103,14 @@ class StylePicker
 	 *
 	 * text-shadow: h-shadow v-shadow blur-radius color|none|initial|inherit;
 	 * text-shadow: 0 0 0 transparent, 0 1px 0 #6ef3ff;
+	 * box-shadow: 1px 1px 2px
 	 *
 	 * @param string $string
 	 * @param string $validator
+	 * @param string $type
 	 * @return string
 	 */
-	protected function validateShadows($string, $validator)
+	protected function validateShadows($string, $validator, $type = 'text')
 	{
 		$multi_shadows = explode(',', $string);
 		$valid = true;
@@ -116,14 +118,18 @@ class StylePicker
 		foreach ($multi_shadows as $shadow)
 		{
 			$pieces = array_map('trim', explode(' ', $shadow));
-			$valid = $valid && count($pieces) === 4;
+			$valid = $valid && count($pieces) >= ($type === 'text' ? 4 : 3);
 
 			if ($valid)
 			{
 				$valid = $valid && $this->validateSize(array($pieces[0], $pieces[1], $pieces[2]), 3, 3) !== '';
 
-				$validator->validation_rules(array('text-shadow' => 'valid_color'));
-				$valid = $valid && $validator->validate(array('text-shadow' => $pieces[3]));
+				// If a color is supplied, validate it
+				if (isset($pieces[3]))
+				{
+					$validator->validation_rules(array('text-shadow' => 'valid_color'));
+					$valid = $valid && $validator->validate(array('text-shadow' => $pieces[3]));
+				}
 			}
 		}
 

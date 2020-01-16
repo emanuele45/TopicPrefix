@@ -10,9 +10,15 @@
 
 class TopicPrefix
 {
+	/** @var null|int[] */
 	protected $_currentTopics = null;
+
+	/** @var int[] */
 	protected $_prefixes = array();
 
+	/**
+	 * TopicPrefix constructor.
+	 */
 	public function __construct()
 	{
 		require_once(SOURCEDIR . '/TopicPrefix.integrate.php');
@@ -35,6 +41,11 @@ class TopicPrefix
 		}
 	}
 
+	/**
+	 * Load the available prefixes for this area
+	 *
+	 * @return array
+	 */
 	public function loadAll()
 	{
 		global $context, $topic, $board;
@@ -43,21 +54,19 @@ class TopicPrefix
 		// that means new topics or editing the first message
 		if (!$context['is_first_post'])
 		{
-			return;
+			return [];
 		}
 
-		// All the template stuff
-		loadTemplate('TopicPrefix');
 		loadLanguage('TopicPrefix');
-		Template_Layers::instance()->addAfter('pickprefix', 'postarea');
 
 		// If we are editing a message, we may want to know the old prefix
+		$prefix['id_prefix'] = null;
 		if (isset($_REQUEST['msg']))
 		{
 			$prefix = $this->getTopicPrefixes($topic);
 		}
 
-		$context['available_prefixes'] = $this->loadPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null, $board);
+		return $this->loadPrefixes($prefix['id_prefix'], $board);
 	}
 
 	public function getTopicPrefixes($topics)
@@ -514,6 +523,14 @@ class TopicPrefix
 		return $id;
 	}
 
+	/**
+	 * Validates / Cleans the prefix name and board selection list when
+	 * a prefix is added/ updated
+	 *
+	 * @param $text
+	 * @param $boards
+	 * @return array|bool
+	 */
 	protected function _validateQueryParams($text, $boards)
 	{
 		// @todo move to validation class
@@ -588,15 +605,13 @@ class TopicPrefix
 		}
 
 		// Make sure this is valid css selector
-		$classSelector = trim(substr($style, 0, strpos($style, '{')));
-		if ($classSelector === '.prefix_id_' . $prefix_id)
+		$cssSelector = trim(substr($style, 0, strpos($style, '{')));
+		if ($cssSelector === '.prefix_id_' . $prefix_id)
 		{
 			return $style;
 		}
 
-		return '.prefix_id_' . $prefix_id . ' {
-	' . $style . '
-}';
+		return '.prefix_id_' . $prefix_id . ' {' . "\n\t" . $style . "\n" . '}';
 	}
 
 	/**
@@ -664,6 +679,12 @@ class TopicPrefix
 		return $id;
 	}
 
+	/**
+	 * Converts a css style to a array of selectors/values
+	 *
+	 * @param string $style
+	 * @return string[]
+	 */
 	public function styleToArray($style)
 	{
 		$style = $this->_unWrap($style);
@@ -678,22 +699,27 @@ class TopicPrefix
 				continue;
 			}
 
-			$k = trim($elem[0]);
-			$v = trim($elem[1]);
-			if (!empty($k) && !empty($v))
+			$selector = trim($elem[0]);
+			$value = trim($elem[1]);
+			if (!empty($selector) && !empty($value))
 			{
-				$return[trim($elem[0])] = trim($elem[1]);
+				$return[$selector] = $value;
 			}
 		}
 
 		return $return;
 	}
 
+	/**
+	 * Removes the {}'s and indentation from a css block
+	 *
+	 * @param string $style
+	 * @return string
+	 */
 	protected function _unWrap($style)
 	{
-		$style = trim($style);
-		$style = trim(substr($style, strpos($style, '{') + 1));
+		$style = trim($style, '{}');
 
-		return trim(substr($style, 0, strpos($style, '}')));
+		return trim(substr($style, strpos($style, '{') + 1));
 	}
 }

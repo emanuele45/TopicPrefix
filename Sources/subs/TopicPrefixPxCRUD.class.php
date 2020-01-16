@@ -8,6 +8,13 @@
  * @version 0.0.5
  */
 
+/**
+ * This class primarily deals with interacting with the topic_prefix_name table
+ * associating prefixes to boards (add, update, delete, count, etc) crud.  This table
+ * also contains the prefix name.
+ *
+ * Class TopicPrefix_PxCRUD
+ */
 class TopicPrefix_PxCRUD
 {
 	protected $db;
@@ -149,11 +156,25 @@ class TopicPrefix_PxCRUD
 		return $this->read('text', array('text' => $text, 'board' => (int) $board));
 	}
 
+	/**
+	 * Remove a prefix by ID from the systems topic_prefix_name table.  If using this
+	 * you should also consider removing its association from topics as well.
+	 *
+	 * @param int $id
+	 * @return bool
+	 */
 	public function deleteById($id)
 	{
 		return $this->delete('id', $id);
 	}
 
+	/**
+	 * Simple helper to allow the removal of a prefix by id or name.
+	 *
+	 * @param string $type
+	 * @param string|int $value
+	 * @return bool
+	 */
 	protected function delete($type, $value)
 	{
 		return $this->runQuery('
@@ -163,6 +184,13 @@ class TopicPrefix_PxCRUD
 		);
 	}
 
+	/**
+	 * Remove a prefix by name from the systems topic_prefix_name table.  If using this
+	 * you should also consider removing its association from topics as well.
+	 *
+	 * @param string $test
+	 * @return bool
+	 */
 	public function deleteByText($text)
 	{
 		return $this->delete('text', $text);

@@ -41,6 +41,7 @@ class ManagePrefix_Controller extends Action_Controller
 			'savestyles' => array($this, 'action_savestyles'),
 			'pickboards' => array($this, 'action_pickboards'),
 			'saveboards' => array($this, 'action_saveboards'),
+			'deleteprefix' => array($this, 'action_deleteprefix'),
 		);
 
 		$action = new Action();
@@ -93,7 +94,7 @@ class ManagePrefix_Controller extends Action_Controller
 
 		$prefix_id = isset($data['pid']) ? (int) $data['pid'] : 0;
 		$text = isset($data['prefix_name']) ? $data['prefix_name'] : null;
-		$boards = isset($data['brd']) ? $data['brd'] : null;
+		$boards = isset($data['brd']) ? $data['brd'] : [];
 		$style = isset($data['prefix_style']) ? $data['prefix_style'] : null;
 
 		// Prefix name is always needed
@@ -165,13 +166,9 @@ class ManagePrefix_Controller extends Action_Controller
 			$prefix_id = isset($_REQUEST['pid']) ? (int) $_REQUEST['pid'] : 0;
 
 			$prefixManager = new TopicPrefix();
-			if (empty($prefix_id))
+			$context['topicprefix'] = $prefixManager->getPrefixDetails($prefix_id);
+			if (!empty($prefix_id))
 			{
-				$context['topicprefix'] = $prefixManager->getPrefixDetails($prefix_id);
-			}
-			else
-			{
-				$context['topicprefix'] = $prefixManager->getPrefixDetails($prefix_id);
 				$context['topicprefix']['style'] = $prefixManager->getStyle($prefix_id, $settings['theme_dir']);
 			}
 		}
@@ -338,7 +335,7 @@ class ManagePrefix_Controller extends Action_Controller
 	}
 
 	/**
-	 * Remember kids, you can pick your boards but not your parents.  THis is the
+	 * Remember kids, you can pick your boards but not your parents.  This is the
 	 * board selection list for use in the ajax call
 	 *
 	 * @throws \Elk_Exception
@@ -370,8 +367,6 @@ class ManagePrefix_Controller extends Action_Controller
 	 */
 	public function action_savenames()
 	{
-		global $context, $db_show_debug;
-
 		checkSession();
 		$id = false;
 		$data = (array) $this->_req->post;
@@ -424,8 +419,33 @@ class ManagePrefix_Controller extends Action_Controller
 		$this->sendJson($id);
 	}
 
+	public function action_deleteprefix()
+	{
+		checkSession();
+		$id = false;
+		$data = (array) $this->_req->post;
+
+		// This function removes the prefix from the system
+		if (!empty($data['pid']))
+		{
+			$topicPrefix = topicprefixLoadId($data['pid']);
+
+			// Just to be sure since there is no going back
+			if ($topicPrefix['text'] === $data['prefix_name'])
+			{
+				// First delete it from the topics, and then from the prefix system
+				$px_manager = new TopicPrefix();
+				$px_manager->pm->deleteById($data['pid']);
+				$px_manager->tm->deleteByPrefix($data['pid']);
+				$id = true;
+			}
+		}
+
+		$this->sendJson($id);
+	}
+
 	/**
-	 * Default action, show a list of prefixes in the system with edit / add options
+	 * Default action, show a list of prefixes in the system with edit / add / remove options
 	 *
 	 * @throws \Elk_Exception
 	 */
@@ -433,8 +453,15 @@ class ManagePrefix_Controller extends Action_Controller
 	{
 		global $context, $scripturl, $txt;
 
-		$this->_loadTemplate();
+		$px_manager = new TopicPrefix();
+		$context['topicprefix'] = $px_manager->loadPrefixes(null, null, true);
+		foreach ($context['topicprefix'] as $id => $prefix)
+		{
+			$context['topicprefix'][$id]['count'] = $px_manager->tm->countByPrefix($id);
+		}
 
+		// Off to the template
+		$this->_loadTemplate();
 		$context['sub_template'] = 'manage_topicprefix';
 		$context['topicprefix_action'] = $scripturl . '?action=admin;area=postsettings;sa=prefix';
 		$context['topicprefix_addnew_url'] = $scripturl . '?action=admin;area=postsettings;sa=prefix;do=editboards';
@@ -442,9 +469,7 @@ class ManagePrefix_Controller extends Action_Controller
 			'prefix_style_header' => $txt['prefix_style_header'],
 			'prefix_boards_header' => $txt['choose_board'],
 			'prefix_save_button' => $txt['save'],
+			'prefix_delete_confirm' => $txt['topicprefix_delete_confirm']
 		), true);
-
-		$px_manager = new TopicPrefix();
-		$context['topicprefix'] = $px_manager->loadPrefixes(null, null, true);
 	}
 }

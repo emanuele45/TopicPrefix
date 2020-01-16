@@ -42,10 +42,10 @@ class Prefix_Controller extends Action_Controller
 	 */
 	private function _base_linktree()
 	{
-		global $context, $txt, $scripturl;
+		global $context, $txt, $scripturl, $board;
 
 		$context['linktree'][] = array(
-			'url' => $scripturl . '?action=prefix;sa=prefixedtopics',
+			'url' => $scripturl . '?action=prefix;sa=prefixedtopics;board=' . $board,
 			'name' => $txt['topicprefix_pagetitle_list']
 		);
 	}
@@ -134,7 +134,7 @@ class Prefix_Controller extends Action_Controller
 			return;
 		}
 
-		// And the prefix ID best be valid
+		// And the prefix ID, it best be valid
 		$prefix_info = $this->px_manager->getPrefixDetails($prefix_id);
 		if (empty($prefix_info))
 		{
@@ -371,22 +371,6 @@ class Prefix_Controller extends Action_Controller
 		// If there are children, but no topics and no ability to post topics...
 		$context['no_topic_listing'] = false;
 		$template_layers->add('topic_listing');
-		/*
-		addJavascriptVar(array('notification_board_notice' => $context['is_marked_notify'] ? $txt['notification_disable_board'] : $txt['notification_enable_board']), true);
-
-		// Build the message index button array.
-		$context['normal_buttons'] = array(
-			'new_topic' => array('test' => 'can_post_new', 'text' => 'new_topic', 'image' => 'new_topic.png', 'lang' => true, 'url' => $scripturl . '?action=post;board=' . $context['current_board'] . '.0', 'active' => true),
-			'notify' => array('test' => 'can_mark_notify', 'text' => $context['is_marked_notify'] ? 'unnotify' : 'notify', 'image' => ($context['is_marked_notify'] ? 'un' : ''). 'notify.png', 'lang' => true, 'custom' => 'onclick="return notifyboardButton(this);"', 'url' => $scripturl . '?action=notifyboard;sa=' . ($context['is_marked_notify'] ? 'off' : 'on') . ';board=' . $context['current_board'] . '.' . $context['start'] . ';' . $context['session_var'] . '=' . $context['session_id']),
-		);
-
-		// They can only mark read if they are logged in and it's enabled!
-		if (!$user_info['is_guest'] && $settings['show_mark_read'])
-			$context['normal_buttons']['markread'] = array('text' => 'mark_read_short', 'image' => 'markread.png', 'lang' => true, 'url' => $scripturl . '?action=markasread;sa=board;board=' . $context['current_board'] . '.0;' . $context['session_var'] . '=' . $context['session_id'], 'custom' => 'onclick="return markboardreadButton(this);"');
-
-		// Allow adding new buttons easily.
-		call_integration_hook('integrate_messageindex_buttons');
-		*/
 	}
 
 	/**

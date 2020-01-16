@@ -8,8 +8,15 @@
  * @version 0.0.5
  */
 
+/**
+ * This class primarily deals with interacting with the topic_prefix table
+ * associating topics to prefixes (add, update, delete, count, etc) crud
+ *
+ * Class TopicPrefix_TcCRUD
+ */
 class TopicPrefix_TcCRUD
 {
+	/** @var \Database */
 	protected $db;
 
 	public function __construct()
@@ -17,11 +24,24 @@ class TopicPrefix_TcCRUD
 		$this->db = database();
 	}
 
+	/**
+	 * Delete a prefix from a given topic id
+	 *
+	 * @param int $topic
+	 * @return bool
+	 */
 	public function deleteByTopic($topic)
 	{
 		return $this->delete('topic', (int) $topic);
 	}
 
+	/**
+	 * Delete "setter", removes a prefix by topic id and/or prefix id
+	 *
+	 * @param string $type
+	 * @param mixed $value
+	 * @return bool
+	 */
 	protected function delete($type, $value)
 	{
 		return $this->runQuery('
@@ -31,6 +51,14 @@ class TopicPrefix_TcCRUD
 		);
 	}
 
+	/**
+	 * Helper function to build a query statement to run against our prefix tables
+	 *
+	 * @param string $statement sql
+	 * @param string $type one of topic, prefix, topic_prefix
+	 * @param mixed $value
+	 * @return mixed false on failure
+	 */
 	protected function runQuery($statement, $type, $value)
 	{
 		$known_types = array(
@@ -54,11 +82,25 @@ class TopicPrefix_TcCRUD
 		);
 	}
 
+	/**
+	 * Delete a prefix by a given prefix id
+	 *
+	 * @param int $prefix
+	 * @return bool
+	 */
 	public function deleteByPrefix($prefix)
 	{
 		return $this->delete('prefix', (int) $prefix);
 	}
 
+	/**
+	 * Fetch a prefix by id, use id to fetch prefix_id/topic_id list and
+	 * anything else to get the prefix_id, prefix name / topic list
+	 *
+	 * @param int $prefix
+	 * @param string $what
+	 * @return mixed
+	 */
 	public function getByPrefix($prefix, $what = 'id')
 	{
 		$method = $this->method($what);
@@ -67,6 +109,12 @@ class TopicPrefix_TcCRUD
 		return $this->result($result);
 	}
 
+	/**
+	 * Helper function to call the right fetch method
+	 *
+	 * @param string $what
+	 * @return string
+	 */
 	protected function method($what)
 	{
 		if ($what === 'id')
@@ -197,11 +245,24 @@ class TopicPrefix_TcCRUD
 		);
 	}
 
+	/**
+	 * Return the number of times a prefix has been used
+	 *
+	 * @param $id_prefix
+	 * @return mixed
+	 */
 	public function countByPrefix($id_prefix)
 	{
 		return $this->count('prefix', (int) $id_prefix);
 	}
 
+	/**
+	 * Helper function to do counting of items in the topic prefix table
+	 *
+	 * @param $type
+	 * @param $value
+	 * @return mixed
+	 */
 	protected function count($type, $value)
 	{
 		$request = $this->runQuery('
@@ -216,6 +277,13 @@ class TopicPrefix_TcCRUD
 		return $num;
 	}
 
+	/**
+	 * Helper function to load the list of topics associated with a given prefix id
+	 *
+	 * @param string $type
+	 * @param mixed $value
+	 * @return array
+	 */
 	protected function read($type, $value)
 	{
 		$request = $this->runQuery('
@@ -234,6 +302,13 @@ class TopicPrefix_TcCRUD
 		return $return;
 	}
 
+	/**
+	 * Helper function to load the list of topics associated with a given prefix id
+	 *
+	 * @param string $type
+	 * @param mixed $value
+	 * @return array
+	 */
 	protected function load($type, $value)
 	{
 		$request = $this->runQuery('
