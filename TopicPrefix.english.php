@@ -32,3 +32,11 @@ $txt['topicprefix_change_text'] = 'Change text:';
 $txt['topicprefix_click_here'] = 'Click here to filter the topics in this board:';
 
 $txt['prefix_style_header'] = 'Style the prefix';
+
+
+$txt['quick_mod_addprefix'] = 'Add Prefix';
+
+$txt['prefix_error_prefixname'] = 'Prefix name required';
+$txt['prefix_error_stylecss'] = 'Style CSS required';
+
+$txt['prefix_error_customcss'] = 'Error: File does not exist/not writable: ';

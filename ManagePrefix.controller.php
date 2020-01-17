@@ -109,15 +109,25 @@ class ManagePrefix_Controller extends Action_Controller
 
 	protected function _savePrefix($data)
 	{
-		global $settings;
+		global $settings, $txt;
 
 		require_once(SUBSDIR . '/TopicPrefix.class.php');
 
 		$prefix_id = isset($data['pid']) ? (int) $data['pid'] : 0;
 
 		$text = isset($data['prefix_name']) ? $data['prefix_name'] : null;
+		// Prefix name
+		if (empty($text))
+			throw new Elk_Exception($txt['prefix_error_prefixname']);
+
+
 		$boards = isset($data['brd']) ? $data['brd'] : null;
 		$style = isset($data['prefix_style']) ? $data['prefix_style'] : null;
+		
+		// style css
+		if (empty($style))
+			throw new Elk_Exception($txt['prefix_error_stylecss']);
+		
 
 		$px_manager = new TopicPrefix();
 
@@ -154,7 +164,21 @@ class ManagePrefix_Controller extends Action_Controller
 
 	public function action_editboards()
 	{
-		global $context, $scripturl, $settings;
+		global $context, $scripturl, $settings, $txt;
+		
+		
+		if (!file_exists($settings['theme_dir'] . '/css/custom.css'))
+		{
+			file_put_contents($settings['theme_dir'] . '/css/custom.css',"");
+			
+			if (!file_exists($settings['theme_dir'] . '/css/custom.css'))
+			{
+			throw new Elk_Exception($txt['prefix_error_customcss'] .$settings['theme_dir'] . '/css/custom.css');
+			}
+			
+		}
+
+		
 
 		$this->_loadTemplate();
 		$context['sub_template'] = 'prefixeditboards';
@@ -194,6 +218,9 @@ class ManagePrefix_Controller extends Action_Controller
 		$context['boards_in_category'] = array();
 
 		$num_boards = countBoards(null, array('include_redirects' => false));
+
+		if (empty($context['topicprefix']['boards']))
+			$context['topicprefix']['boards'] = array();
 
 		$context['boards_check_all'] = count($context['topicprefix']['boards']) == $num_boards;
 		foreach ($context['categories'] as $cat => &$category)

@@ -15,6 +15,13 @@ $hooks = array(
 		'Topic_Prefix_Integrate::messageindex_listing',
 		'SOURCEDIR/TopicPrefix.integrate.php',
 	),
+	
+	array(
+		'integrate_quick_mod_actions',
+		'Topic_Prefix_Integrate::quick_mod_actions',
+		'SOURCEDIR/TopicPrefix.integrate.php',
+	),	
+
 	array(
 		'integrate_action_post_after',
 		'Topic_Prefix_Integrate::post_after',
@@ -45,6 +52,9 @@ $hooks = array(
 		'Topic_Prefix_Integrate::sa_manage_posts',
 		'SOURCEDIR/TopicPrefix.integrate.php',
 	),
+	
+	
+	
 );
 $mod_name = 'Topics Prefix';
 

@@ -134,7 +134,13 @@ function template_prefixeditboards()
 						</fieldset>
 						<input type="submit" value="', $txt['save'], '" class="right_submit" />
 					</div>
-				</div>
+				</div>';
+				
+				
+				if (!empty($context['topicprefix']['id']))
+					echo '<input type="hidden" name="pid" value="', $context['topicprefix']['id'] , '" />';
+				
+				echo '
 				<input type="hidden" name="', $context['admin-editprefix_token_var'], '" value="', $context['admin-editprefix_token'], '" />
 				<input type="hidden" name="', $context['session_var'], '" value="', $context['session_id'], '" />
 			</form>
