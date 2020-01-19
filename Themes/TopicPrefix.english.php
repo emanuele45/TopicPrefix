@@ -46,6 +46,6 @@ $txt['prefix_error_customcss'] = 'Error: File does not exist/not writable: ';
 
 $txt['prefix_name'] = 'Prefix Name';
 $txt['prefix_num_topics'] = '# of Topics';
-$txt['prefix_link'] = 'Link';
+$txt['prefix_link'] = 'Show All Topics';
 
 $txt['prefix_usage'] = 'Total uses: ';

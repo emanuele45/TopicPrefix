@@ -29,7 +29,7 @@ class Topic_Prefix_Integrate
 	 */
 	public static function messageindex_listing($topicsinfo)
 	{
-		global $context, $board;
+		global $context, $board, $settings;
 
 		// Prepare to show any topics with prefixes
 		require_once(SUBSDIR . '/TopicPrefix.subs.php');
@@ -48,6 +48,20 @@ class Topic_Prefix_Integrate
 
 		if (count($prefixes) !== 0)
 		{
+			// Theme setting for who's viewing this board?
+			if (!empty($settings['display_who_viewing']))
+			{
+				if (empty($board))
+				{
+					$settings['display_who_viewing'] = false;
+				}
+				else
+				{
+					require_once(SUBSDIR . '/Who.subs.php');
+					formatViewers($board, 'board');
+				}
+			}
+
 			loadTemplate('TopicPrefix');
 			Template_Layers::instance()->addAfter('boardprefixes', 'topic_listing');
 
@@ -122,7 +136,6 @@ class Topic_Prefix_Integrate
 		{
 			require_once(SUBSDIR . '/TopicPrefix.subs.php');
 			loadCSSFile('TopicPrefix.css');
-
 			$context['num_views_text'] = sprintf($txt['topicprefix_linktree'], topicprefix_prefix_marktup($prefixes[$topic])) . ' ' . $context['num_views_text'];
 		}
 	}

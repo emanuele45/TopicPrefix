@@ -431,7 +431,7 @@ class Prefix_Controller extends Action_Controller
 						'function' => function ($row) {
 							global $scripturl;
 
-							return '<a href="' . $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $row['id_prefix'] . '">' . $row['prefix'] . '</a>';
+							return '<a href="' . $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $row['id_prefix'] . '" rel="nofollow">' . $row['prefix'] . '</a>';
 						},
 					),
 				),

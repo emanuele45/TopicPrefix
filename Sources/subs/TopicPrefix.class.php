@@ -25,10 +25,10 @@ class TopicPrefix
 	}
 
 	/**
-	 * @property TopicPrefix_PxCRUD $pm
-	 * @property TopicPrefix_TcCRUD $tm
 	 * @param $method
 	 * @return \TopicPrefix_PxCRUD|\TopicPrefix_TcCRUD
+	 * @property TopicPrefix_PxCRUD $pm
+	 * @property TopicPrefix_TcCRUD $tm
 	 */
 	public function __get($method)
 	{
@@ -69,6 +69,12 @@ class TopicPrefix
 		return $this->loadPrefixes($prefix['id_prefix'], $board);
 	}
 
+	/**
+	 * Return an array of prefixes in use for a group of topics.
+	 *
+	 * @param int|int[] $topics
+	 * @return array|mixed
+	 */
 	public function getTopicPrefixes($topics)
 	{
 		$is_array = is_array($topics);
@@ -83,6 +89,15 @@ class TopicPrefix
 		}
 
 		$prefixes = $this->tm->getByTopic($topics, 'load');
+
+		// A bit messy but hey ... get the board each topic is from
+		require_once(SUBSDIR . '/Topic.subs.php');
+		$i = 0;
+		$boards = topicAttribute(array_keys($prefixes), 'id_board');
+		foreach ($prefixes as $topic => $details)
+		{
+			$prefixes[$topic]['board'] = $boards[$i++]['id_board'];
+		}
 
 		if ($is_array)
 		{

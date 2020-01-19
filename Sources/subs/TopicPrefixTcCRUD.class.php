@@ -205,6 +205,13 @@ class TopicPrefix_TcCRUD
 		return $this->update((int) $id_prefix, 'topic_prefix', array('id_topic' => (int) $topic, 'id_prefix' => (int) $prefix));
 	}
 
+	/**
+	 * Fetch the prefixes associated with a topic
+	 *
+	 * @param int[] $topic
+	 * @param string $what
+	 * @return array|mixed
+	 */
 	public function getByTopic($topic, $what = 'id')
 	{
 		$method = $this->method($what);
