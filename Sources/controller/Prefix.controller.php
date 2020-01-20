@@ -143,6 +143,9 @@ class Prefix_Controller extends Action_Controller
 			return;
 		}
 
+		// How many topics do we have in total
+		$prefix_info['count'] = $this->px_manager->tm->getCountBoardPrefix($prefix_id);
+
 		$context['name'] = $prefix_info['text'];
 		$context['sub_template'] = 'topic_listing';
 		$template_layers = Template_Layers::instance();
@@ -191,7 +194,7 @@ class Prefix_Controller extends Action_Controller
 			$sort_string = '';
 		}
 
-		$context['page_index'] = constructPageIndex($scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . '.%1$d' . $sort_string, $this->_req->query->start, $prefix_info['count'], $maxindex);
+		$context['page_index'] = constructPageIndex($scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_id . $sort_string, $this->_req->query->start, $prefix_info['count'], $maxindex);
 		$context['start'] = &$this->_req->query->start;
 
 		// Set a canonical URL for this page.

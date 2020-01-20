@@ -239,9 +239,7 @@ class TopicPrefix
 			return false;
 		}
 
-		$count = $this->tm->countByPrefix($prefix_id);
-
-		return array('id' => $pxd['id_prefix'], 'text' => $text, 'count' => $count, 'boards' => explode(',', $pxd['id_boards']));
+		return array('id' => $pxd['id_prefix'], 'text' => $text, 'boards' => explode(',', $pxd['id_boards']));
 	}
 
 	/**

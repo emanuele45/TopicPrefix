@@ -212,8 +212,8 @@ class TopicPrefix_TcCRUD
 		// If we already have one, then we have to change it
 		// (provided the new one is different)
 		return $this->update((int) $id_prefix, 'topic_prefix', array(
-			'id_topic' => (int) $id_topic,
-			'id_prefix' => (int) $id_prefix)
+			'id_topic' => $id_topic,
+			'id_prefix' => $id_prefix)
 		);
 	}
 
@@ -310,6 +310,56 @@ class TopicPrefix_TcCRUD
 		$this->db->free_result($request);
 
 		return $num;
+	}
+
+	/**
+	 * Return the number of topics with this prefix on a specific board
+	 *
+	 * @param int $prefix_id
+	 * @return mixed
+	 */
+	public function getCountBoardPrefix($prefix_id)
+	{
+		global $user_info, $board, $modSettings;
+
+		return $this->countCurrentBoardPrefixes($prefix_id, $user_info['id'],
+			array(
+				'only_approved' => $modSettings['postmod_active'] && !allowedTo('approve_posts'),
+				'board' => !empty($board) ? $board : null)
+		);
+	}
+
+	/**
+	 * The function that does the counting grunt work
+	 *
+	 * @param int $prefix_id
+	 * @param int $id_member
+	 * @param mixed $indexOptions
+	 * @return mixed
+	 */
+	protected function countCurrentBoardPrefixes($prefix_id, $id_member, $indexOptions)
+	{
+		$request = $this->db->query('', '
+			SELECT 
+				COUNT(t.id_topic)
+			FROM {db_prefix}topic_prefix AS p
+				LEFT JOIN {db_prefix}topics AS t ON (p.id_topic = t.id_topic)
+				LEFT JOIN {db_prefix}boards AS b ON (t.id_board = b.id_board)
+			WHERE {query_see_board}' . ($indexOptions['board'] === null ? '' : '
+				AND b.id_board = {int:board}') . '
+				AND p.id_prefix = {int:current_prefix}' . (!$indexOptions['only_approved'] ? '' : '
+				AND (t.approved = {int:is_approved}' . ($id_member == 0 ? '' : ' OR t.id_member_started = {int:current_member}') . ')'),
+			array(
+				'current_prefix' => $prefix_id,
+				'current_member' => $id_member,
+				'board' => $indexOptions['board'],
+				'is_approved' => 1,
+			)
+		);
+		list($count) = $this->db->fetch_row($request);
+		$this->db->free_result($request);
+
+		return $count;
 	}
 
 	/**
