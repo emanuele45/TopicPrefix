@@ -19,6 +19,9 @@ class TopicPrefix_TcCRUD
 	/** @var \Database */
 	protected $db;
 
+	/**
+	 * TopicPrefix_TcCRUD constructor.
+	 */
 	public function __construct()
 	{
 		$this->db = database();
@@ -38,7 +41,7 @@ class TopicPrefix_TcCRUD
 	/**
 	 * Delete "setter", removes a prefix by topic id and/or prefix id
 	 *
-	 * @param string $type
+	 * @param string $type topic, prefix or topic_prefix
 	 * @param mixed $value
 	 * @return bool
 	 */
@@ -56,12 +59,13 @@ class TopicPrefix_TcCRUD
 	 *
 	 * @param string $statement sql
 	 * @param string $type one of topic, prefix, topic_prefix
-	 * @param mixed $value
+	 * @param mixed $value array of ints for topics / prefixes
 	 * @return mixed false on failure
 	 */
 	protected function runQuery($statement, $type, $value)
 	{
 		$known_types = array(
+			'topic_board' => 'p.id_topic IN ({array_int:id_topic})',
 			'topic' => 'id_topic IN ({array_int:id_topic})',
 			'prefix' => 'id_prefix IN ({array_int:id_prefix})',
 			'topic_prefix' => 'id_topic IN ({array_int:id_topic}) AND id_prefix IN ({array_int:id_prefix})',
@@ -120,6 +124,11 @@ class TopicPrefix_TcCRUD
 		if ($what === 'id')
 		{
 			return 'read';
+		}
+
+		if ($what === 'full')
+		{
+			return 'load';
 		}
 
 		return 'load';
@@ -202,20 +211,33 @@ class TopicPrefix_TcCRUD
 
 		// If we already have one, then we have to change it
 		// (provided the new one is different)
-		return $this->update((int) $id_prefix, 'topic_prefix', array('id_topic' => (int) $topic, 'id_prefix' => (int) $prefix));
+		return $this->update((int) $id_prefix, 'topic_prefix', array(
+			'id_topic' => (int) $id_topic,
+			'id_prefix' => (int) $id_prefix)
+		);
 	}
 
 	/**
 	 * Fetch the prefixes associated with a topic
 	 *
-	 * @param int[] $topic
+	 * @param int[] $topics
 	 * @param string $what
 	 * @return array|mixed
 	 */
-	public function getByTopic($topic, $what = 'id')
+	public function getByTopic($topics, $what = 'id')
 	{
 		$method = $this->method($what);
-		$result = $this->{$method}('topic', $topic);
+		switch ($what)
+		{
+			case 'id':
+				$result = $this->{$method}('topic', $topics);
+				break;
+			case 'full':
+				$result = $this->{$method}('topic_board', $topics);
+				break;
+			default:
+				$result = $this->{$method}('topic', $topics);
+		}
 
 		return $this->result($result, 'id_topic');
 	}
@@ -241,6 +263,12 @@ class TopicPrefix_TcCRUD
 		);
 	}
 
+	/**
+	 * @param int $new_prefix
+	 * @param string $type topic_prefix
+	 * @param int $value
+	 * @return mixed
+	 */
 	protected function update($new_prefix, $type, $value)
 	{
 		$value['new_prefix'] = $new_prefix;
@@ -266,9 +294,9 @@ class TopicPrefix_TcCRUD
 	/**
 	 * Helper function to do counting of items in the topic prefix table
 	 *
-	 * @param $type
-	 * @param $value
-	 * @return mixed
+	 * @param string $type prefix
+	 * @param int[] $value
+	 * @return int
 	 */
 	protected function count($type, $value)
 	{
@@ -312,7 +340,7 @@ class TopicPrefix_TcCRUD
 	/**
 	 * Helper function to load the list of topics associated with a given prefix id
 	 *
-	 * @param string $type
+	 * @param string $type prefix, topic, topic_prefix, topic_board
 	 * @param mixed $value
 	 * @return array
 	 */
@@ -320,9 +348,10 @@ class TopicPrefix_TcCRUD
 	{
 		$request = $this->runQuery('
 			SELECT 
-				p.id_topic, p.id_prefix, pt.prefix
+				p.id_topic, p.id_prefix, pt.prefix' . ($type === 'topic_board' ? ', tp.id_board' : '') . '
 			FROM {db_prefix}topic_prefix AS p
-				LEFT JOIN {db_prefix}topic_prefix_text AS pt ON (p.id_prefix = pt.id_prefix)',
+				LEFT JOIN {db_prefix}topic_prefix_text AS pt ON (p.id_prefix = pt.id_prefix)' . ($type === 'topic_board'
+				? 'LEFT JOIN {db_prefix}topics AS tp ON (p.id_topic = tp.id_topic)' : ''),
 			$type, $value
 		);
 		$return = array();

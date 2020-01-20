@@ -88,16 +88,7 @@ class TopicPrefix
 			$topics = array($topics);
 		}
 
-		$prefixes = $this->tm->getByTopic($topics, 'load');
-
-		// A bit messy but hey ... get the board each topic is from
-		require_once(SUBSDIR . '/Topic.subs.php');
-		$i = 0;
-		$boards = topicAttribute(array_keys($prefixes), 'id_board');
-		foreach ($prefixes as $topic => $details)
-		{
-			$prefixes[$topic]['board'] = $boards[$i++]['id_board'];
-		}
+		$prefixes = $this->tm->getByTopic($topics, 'full');
 
 		if ($is_array)
 		{

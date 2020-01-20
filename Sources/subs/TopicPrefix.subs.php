@@ -29,7 +29,7 @@ function topicprefix_showprefix($topicsinfo)
 		if (isset($prefixes[$topic]))
 		{
 			$has_prefix = true;
-			$prefix_markup = topicprefix_prefix_marktup($prefixes[$topic], $prefixes[$topic]['board']);
+			$prefix_markup = topicprefix_prefix_marktup($prefixes[$topic], $prefixes[$topic]['id_board']);
 
 			$context['topics'][$topic]['first_post']['link'] = $prefix_markup . $context['topics'][$topic]['first_post']['link'];
 			$context['topics'][$topic]['subject'] = $prefix_markup . $context['topics'][$topic]['subject'];
