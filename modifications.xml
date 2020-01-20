@@ -41,17 +41,14 @@
 								array('id_prefix', 'id_topic')
 							);
 						}
-						break;
-				}
-			]]></add>
+						break;]]></add>
 		</operation>
 	</file>
 
 	<file name="THEMEDIR/MessageIndex.template.php">
 		<operation>
 			<search position="after"><![CDATA[// Show a list of boards they can move the topic to.]]></search>
-			<add><![CDATA[
-			// Prefix dropdown box
+			<add><![CDATA[			// Prefix dropdown box
 			echo '
 				<select name="prefix">
 					<option value="0"></option>';
