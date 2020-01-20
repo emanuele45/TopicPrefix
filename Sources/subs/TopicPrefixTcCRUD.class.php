@@ -82,6 +82,7 @@ class TopicPrefix_TcCRUD
 			array(
 				'id_topic' => isset($value['id_topic']) ? (array) $value['id_topic'] : (array) $value,
 				'id_prefix' => isset($value['id_prefix']) ? (array) $value['id_prefix'] : (array) $value,
+				'new_prefix' => isset($value['new_prefix']) ? $value['new_prefix'] : '',
 			)
 		);
 	}
@@ -200,7 +201,7 @@ class TopicPrefix_TcCRUD
 		// If the prefix is empty, just cleanup any potential mess and live happy!
 		if (empty($id_prefix))
 		{
-			return $this->deleteByTopicPrefix($id_topic, $current);
+			return $this->deleteByTopicPrefix($id_topic, $current[$id_topic]['id_prefix']);
 		}
 
 		// If the record doesn't exist it's time to create it
@@ -212,8 +213,8 @@ class TopicPrefix_TcCRUD
 		// If we already have one, then we have to change it
 		// (provided the new one is different)
 		return $this->update((int) $id_prefix, 'topic_prefix', array(
-			'id_topic' => $id_topic,
-			'id_prefix' => $id_prefix)
+			'id_topic' => $current[$id_topic]['id_topic'],
+			'id_prefix' => $current[$id_topic]['id_prefix'])
 		);
 	}
 
@@ -242,6 +243,13 @@ class TopicPrefix_TcCRUD
 		return $this->result($result, 'id_topic');
 	}
 
+	/**
+	 * Remove a prefix from a topic
+	 *
+	 * @param int $topic
+	 * @param int $prefix
+	 * @return bool
+	 */
 	public function deleteByTopicPrefix($topic, $prefix)
 	{
 		return $this->delete('topic_prefix', array('id_topic' => (int) $topic, 'id_prefix' => (int) $prefix));
@@ -266,7 +274,7 @@ class TopicPrefix_TcCRUD
 	/**
 	 * @param int $new_prefix
 	 * @param string $type topic_prefix
-	 * @param int $value
+	 * @param mixed $value
 	 * @return mixed
 	 */
 	protected function update($new_prefix, $type, $value)
