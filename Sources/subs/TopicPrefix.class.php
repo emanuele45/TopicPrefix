@@ -5,22 +5,31 @@
  * @author  emanuele
  * @license BSD http://opensource.org/licenses/BSD-3-Clause
  *
- * @version 0.0.2
+ * @version 0.0.5
  */
-
-if (!defined('ELK'))
-	die('No access...');
 
 class TopicPrefix
 {
+	/** @var null|int[] */
 	protected $_currentTopics = null;
+
+	/** @var int[] */
 	protected $_prefixes = array();
 
+	/**
+	 * TopicPrefix constructor.
+	 */
 	public function __construct()
 	{
 		require_once(SOURCEDIR . '/TopicPrefix.integrate.php');
 	}
 
+	/**
+	 * @param $method
+	 * @return \TopicPrefix_PxCRUD|\TopicPrefix_TcCRUD
+	 * @property TopicPrefix_PxCRUD $pm
+	 * @property TopicPrefix_TcCRUD $tm
+	 */
 	public function __get($method)
 	{
 		switch ($method)
@@ -32,6 +41,11 @@ class TopicPrefix
 		}
 	}
 
+	/**
+	 * Load the available prefixes for this area
+	 *
+	 * @return array
+	 */
 	public function loadAll()
 	{
 		global $context, $topic, $board;
@@ -39,27 +53,63 @@ class TopicPrefix
 		// This has a meaning only for first posts
 		// that means new topics or editing the first message
 		if (!$context['is_first_post'])
-			return;
+		{
+			return [];
+		}
 
-		// All the template stuff
-		loadTemplate('TopicPrefix');
 		loadLanguage('TopicPrefix');
-		Template_Layers::getInstance()->addAfter('pickprefix', 'postarea');
 
 		// If we are editing a message, we may want to know the old prefix
+		$prefix['id_prefix'] = null;
 		if (isset($_REQUEST['msg']))
 		{
 			$prefix = $this->getTopicPrefixes($topic);
 		}
 
-		$context['available_prefixes'] = $this->loadPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null, $board);
+		return $this->loadPrefixes($prefix['id_prefix'], $board);
 	}
 
-	public function updateTopicPrefix($topic, $prefix_id)
+	/**
+	 * Return an array of prefixes in use for a group of topics.
+	 *
+	 * @param int|int[] $topics
+	 * @return array|mixed
+	 */
+	public function getTopicPrefixes($topics)
 	{
-		$this->tm->updateByPrefixTopic($topic, $prefix_id);
+		$is_array = is_array($topics);
+		if (empty($topics))
+		{
+			return array();
+		}
+
+		if (!$is_array)
+		{
+			$topics = array($topics);
+		}
+
+		$prefixes = $this->tm->getByTopic($topics, 'full');
+
+		if ($is_array)
+		{
+			return $prefixes;
+		}
+
+		return array_shift($prefixes);
 	}
 
+	/**
+	 * Generates the listing of prefix's that are available for a board.  Used for the
+	 * selection list in new topics and quick moderation.
+	 *
+	 * Additionally will create the list of boards a prefix is available for use on if
+	 * $for_edit is set to true.
+	 *
+	 * @param int $default
+	 * @param int $board
+	 * @param bool $for_edit
+	 * @return array
+	 */
 	public function loadPrefixes($default = null, $board = null, $for_edit = false)
 	{
 		global $txt, $scripturl;
@@ -67,48 +117,61 @@ class TopicPrefix
 		$boards = (array) $board;
 		$boards_used = array();
 
+		// If we have a list of topics, load the prefixes they use
 		if ($this->_currentTopics !== null)
+		{
 			$this->_prefixes = $this->tm->getByTopic($this->_currentTopics);
+		}
 
-		$px = $this->pm->getAll();
+		// Fetch all of the prefixes in the system
+		$allPrefixes = $this->pm->getAll();
 
+		$prefixes = array();
 		if (!$for_edit)
 		{
-			$prefixes = array(0 => array(
+			$prefixes[0] = array(
 				'selected' => true,
 				'text' => $txt['topicprefix_noprefix'],
 				'id_boards' => array(),
-			));
+			);
 		}
-		else
-			$prefixes = array();
 
-		foreach ($px as $row)
+		foreach ($allPrefixes as $prefixData)
 		{
-			$id_boards = array();
-			if (!$for_edit && empty($row['id_boards']))
+			// Prefix is not used on any boards
+			if (!$for_edit && empty($prefixData['id_boards']))
+			{
 				continue;
+			}
 
 			// I could use find_in_set, but I may also change my mind later...
-			$id_boards = explode(',', $row['id_boards']);
+			$id_boards = explode(',', $prefixData['id_boards']);
 
-			if (!empty($boards) && count(array_intersect($boards, $id_boards)) == 0)
+			// Prefix is not used on the current set of boards
+			if (!empty($boards) && count(array_intersect($boards, $id_boards)) === 0)
+			{
 				continue;
+			}
 
 			$boards_used = array_filter(array_unique(array_merge($boards_used, $id_boards)));
 
-			$prefixes[$row['id_prefix']] = array(
-				'selected' => in_array($row['id_prefix'], $this->_prefixes),
-				'text' => $row['prefix'],
+			// Add it as an available prefix
+			$prefixes[$prefixData['id_prefix']] = array(
+				'selected' => in_array($prefixData['id_prefix'], $this->_prefixes),
+				'text' => $prefixData['prefix'],
 				'id_boards' => $id_boards,
-				'edit_url' => $for_edit ? $scripturl . '?action=admin;area=postsettings;sa=prefix;do=editboards;pid=' . $row['id_prefix'] : '',
+				'edit_url' => $scripturl . '?action=admin;area=postsettings;sa=prefix;do=editboards;pid=' . $prefixData['id_prefix'],
 			);
 
-			if ($default == $row['id_prefix'])
+			if ($default == $prefixData['id_prefix'])
+			{
 				$prefixes[0]['selected'] = false;
+				$prefixes[$default]['selected'] = true;
+			}
 		}
 
-		if ($board === null && !empty($boards_used))
+		// The list of boards the prefix is used on, for use in areas like the ACP info panel
+		if ($for_edit && !empty($boards_used))
 		{
 			require_once(SUBSDIR . '/Boards.subs.php');
 			$boardsdetail = fetchBoardsInfo(array('boards' => $boards_used));
@@ -117,16 +180,21 @@ class TopicPrefix
 			foreach ($prefixes as $key => $value)
 			{
 				if ($num_boards == count($value['id_boards']))
+				{
 					$bdet = array(0 => array('name' => $txt['all_boards']));
+				}
 				else
 				{
 					$bdet = array();
 					foreach ($value['id_boards'] as $id)
 					{
 						if (!empty($id))
+						{
 							$bdet[] = $boardsdetail[$id];
+						}
 					}
 				}
+
 				$prefixes[$key]['boards'] = $bdet;
 			}
 		}
@@ -134,114 +202,67 @@ class TopicPrefix
 		return $prefixes;
 	}
 
-	protected function _countBoards()
+	public function updateTopicPrefix($topic, $prefix_id)
 	{
-		$db = database();
-		$request = $db->query('', '
-			SELECT COUNT(*)
-			FROM {db_prefix}boards AS b
-			WHERE {query_see_board}
-				AND '
-		);
-		list ($count) = $db->fetch_row($request);
-		$db->free_result($request);
-
-		return $count;
+		$this->tm->updateByPrefixTopic($topic, $prefix_id);
 	}
 
 	public function setTopic($topics)
 	{
-		$this->_is_array = is_array($this->_currentTopics);
-
-		if (!$this->_is_array)
+		if (!is_array($this->_currentTopics))
+		{
 			$this->_currentTopics = array($this->_currentTopics);
+		}
 
 		$this->_currentTopics = $topics;
 	}
 
-	public function getTopicPrefixes($topics)
-	{
-		$is_array = is_array($topics);
-		if (empty($topics))
-			return array();
-
-		if (!$is_array)
-			$topics = array($topics);
-
-		$prefixes = $this->tm->getByTopic($topics, 'load');
-
-		if ($is_array)
-			return $prefixes;
-		else
-			return array_shift($prefixes);
-	}
-
+	/**
+	 * Fetch the details of an existing prefix, or return the defaults for a new one
+	 *
+	 * @param int $prefix_id
+	 * @return array|bool
+	 */
 	public function getPrefixDetails($prefix_id)
 	{
 		if (empty($prefix_id))
+		{
 			return $this->_prefixDefaults();
+		}
 
 		$pxd = $this->pm->getById($prefix_id);
 		$text = $pxd['prefix'];
 
 		// An empty prefix cannot exists (well, a prefix 0 could), so out of here!
-		if (empty($text) && $text == '')
+		if (empty($text) && $text === '')
+		{
 			return false;
+		}
 
-		$count = $this->tm->countByPrefix($prefix_id);
-
-		return array('id' => $pxd['id_prefix'], 'text' => $text, 'count' => $count, 'boards' => explode(',', $pxd['id_boards']));
+		return array('id' => $pxd['id_prefix'], 'text' => $text, 'boards' => explode(',', $pxd['id_boards']));
 	}
 
+	/**
+	 * Empty starter array for a new prefix
+	 *
+	 * @return array
+	 */
 	protected function _prefixDefaults()
 	{
 		return array(
 			'id_prefix' => 0,
 			'text' => '',
 			'boards' => array(),
-			'style' => $this->_defaultStyle($this->_maxId())
+			'style' => trim($this->_defaultStyle($this->_maxId()))
 		);
 	}
 
-	protected function _maxId()
-	{
-		$db = database();
-		$request = $db->query('', '
-			SELECT MAX(id_prefix) + 1
-			FROM {db_prefix}topic_prefix_text');
-		list ($max) = $db->fetch_row($request);
-		$db->free_result($request);
-
-		return $max;
-	}
-
-	public function getStyle($prefix_id, $theme_dir)
-	{
-		$file = $theme_dir . '/css/custom.css';
-		$style = $this->_fetchStyle($file, $prefix_id);
-
-		if ($style === false || $style === true)
-			return $this->_defaultStyle($prefix_id);
-		else
-			return $style;
-	}
-
-	protected function _fetchStyle($file, $prefix_id)
-	{
-		if (!file_exists($file))
-			return false;
-
-		if (!is_writable($file))
-			return false;
-
-		$string = file_get_contents($file);
-		preg_match('~\.prefix_id_' . $prefix_id . '[\n\s]\{.*?\}~s', $string, $match);
-		if (!empty($match[0]))
-			return $match[0];
-		else
-			return true;
-	}
-
+	/**
+	 * Just an empty boilerplate css style for a prefix
+	 *
+	 * @param $prefix_id
+	 * @return string
+	 */
 	protected function _defaultStyle($prefix_id)
 	{
 		global $txt;
@@ -251,13 +272,90 @@ class TopicPrefix
 }';
 	}
 
+	/**
+	 * Retrieve the next available prefix id
+	 *
+	 * @return int
+	 */
+	protected function _maxId()
+	{
+		$db = database();
+		$request = $db->query('', '
+			SELECT 
+				MAX(id_prefix) + 1
+			FROM {db_prefix}topic_prefix_text');
+		list ($max) = $db->fetch_row($request);
+		$db->free_result($request);
+
+		return empty($max) ? 1 : $max;
+	}
+
+	/**
+	 * Get the associated css style for a given prefix/theme
+	 *
+	 * @param $prefix_id
+	 * @param $theme_dir
+	 * @return bool|mixed|string
+	 */
+	public function getStyle($prefix_id, $theme_dir)
+	{
+		$file = $theme_dir . '/css/custom.css';
+		$style = $this->_fetchStyle($file, $prefix_id);
+
+		// No style, lets give them some
+		if (empty($style))
+		{
+			return trim($this->_defaultStyle($prefix_id));
+		}
+
+		return $style;
+	}
+
+	/**
+	 * Fetch this prefix's custom.css style
+	 *
+	 * @param string $file
+	 * @param string $prefix_id
+	 * @return string
+	 */
+	protected function _fetchStyle($file, $prefix_id)
+	{
+		if (!file_exists($file))
+		{
+			return false;
+		}
+
+		// Read the file, find THIS prefix's style
+		$string = file_get_contents($file);
+		preg_match('~\.prefix_id_' . $prefix_id . '[\n\s]\{.*?\}~s', $string, $match);
+		if (!empty($match[0]))
+		{
+			return $match[0];
+		}
+
+		return '';
+	}
+
+	/**
+	 * Fetch all topics with a given prefix, if any, that this user can see on a
+	 * given board.
+	 *
+	 * @param int $prefix_id
+	 * @param int $id_member
+	 * @param int $start
+	 * @param int $limit
+	 * @param string $sort_by
+	 * @param string $sort_column
+	 * @param array $indexOptions
+	 * @return array
+	 */
 	public function getPrefixedTopics($prefix_id, $id_member, $start, $limit, $sort_by, $sort_column, $indexOptions)
 	{
 		$db = database();
-		$topics = array();
 
 		$request = $db->query('', '
-			SELECT t.id_topic
+			SELECT 
+				t.id_topic
 			FROM {db_prefix}topic_prefix AS p
 				LEFT JOIN {db_prefix}topics AS t ON (p.id_topic = t.id_topic)
 				LEFT JOIN {db_prefix}boards AS b ON (t.id_board = b.id_board)' . ($sort_by === 'last_poster' ? '
@@ -283,22 +381,31 @@ class TopicPrefix
 		);
 		$topic_ids = array();
 		while ($row = $db->fetch_assoc($request))
+		{
 			$topic_ids[] = $row['id_topic'];
+		}
 		$db->free_result($request);
 
 		// And now, all you ever wanted on message index...
 		// and some you wish you didn't! :P
+		$topics = array();
 		if (!empty($topic_ids))
 		{
 			// If empty, no preview at all
 			if (empty($indexOptions['previews']))
+			{
 				$preview_bodies = '';
+			}
 			// If -1 means everything
 			elseif ($indexOptions['previews'] === -1)
+			{
 				$preview_bodies = ', ml.body AS last_body, mf.body AS first_body';
+			}
 			// Default: a SUBSTRING
 			else
+			{
 				$preview_bodies = ', SUBSTRING(ml.body, 1, ' . ($indexOptions['previews'] + 256) . ') AS last_body, SUBSTRING(mf.body, 1, ' . ($indexOptions['previews'] + 256) . ') AS first_body';
+			}
 
 			$request = $db->query('substring', '
 				SELECT
@@ -313,7 +420,7 @@ class TopicPrefix
 					IFNULL(memf.real_name, mf.poster_name) AS first_display_name
 					' . $preview_bodies . '
 					' . (!empty($indexOptions['include_avatars']) ? ' ,meml.avatar ,IFNULL(a.id_attach, 0) AS id_attach, a.filename, a.attachment_type, meml.email_address' : '') .
-					(!empty($indexOptions['custom_selects']) ? ' ,' . implode(',', $indexOptions['custom_selects']) : '') . '
+				(!empty($indexOptions['custom_selects']) ? ' ,' . implode(',', $indexOptions['custom_selects']) : '') . '
 				FROM {db_prefix}topic_prefix AS p
 					LEFT JOIN {db_prefix}topics AS t ON (p.id_topic = t.id_topic)
 					INNER JOIN {db_prefix}messages AS ml ON (ml.id_msg = t.id_last_msg)
@@ -337,24 +444,25 @@ class TopicPrefix
 					'maxindex' => $limit,
 				)
 			);
-
 			// Lets take the results
 			while ($row = $db->fetch_assoc($request))
+			{
 				$topics[$row['id_topic']] = $row;
+			}
 
 			$db->free_result($request);
 		}
 
 		return $topics;
-
 	}
 
-	public function getAllPrefixes($start, $limit, $sort, $sort_dir)
+	public function getAllPrefixes($start, $limit, $sort, $sort_dir = '')
 	{
 		$db = database();
 
 		$request = $db->query('', '
-			SELECT p.id_prefix, pt.prefix, COUNT(p.id_topic) as num_topics
+			SELECT 
+				p.id_prefix, pt.prefix, COUNT(p.id_topic) as num_topics
 			FROM {db_prefix}topics AS t
 				INNER JOIN {db_prefix}boards AS b ON (t.id_board = b.id_board AND {query_see_board})
 				LEFT JOIN {db_prefix}topic_prefix AS p ON (t.id_topic = p.id_topic)
@@ -372,7 +480,9 @@ class TopicPrefix
 		);
 		$return = array();
 		while ($row = $db->fetch_assoc($request))
+		{
 			$return[$row['id_prefix']] = $row;
+		}
 		$db->free_result($request);
 
 		return $return;
@@ -383,6 +493,15 @@ class TopicPrefix
 		return $this->pm->countAll();
 	}
 
+	/**
+	 * Save a new prefix
+	 *
+	 * @param string $text prefix name
+	 * @param int[] $boards which boards its available on
+	 * @param string $style css style attributes
+	 * @param string $themedir style is theme specific
+	 * @return bool
+	 */
 	public function newPrefix($text, $boards, $style, $themedir)
 	{
 		$db = database();
@@ -390,7 +509,9 @@ class TopicPrefix
 		list ($text, $boards) = $this->_validateQueryParams($text, $boards);
 
 		if (empty($text))
+		{
 			return false;
+		}
 
 		$db->insert('insert',
 			'{db_prefix}topic_prefix_text',
@@ -406,26 +527,138 @@ class TopicPrefix
 		return $id;
 	}
 
+	/**
+	 * Validates / Cleans the prefix name and board selection list when
+	 * a prefix is added/ updated
+	 *
+	 * @param $text
+	 * @param $boards
+	 * @return array|bool
+	 */
+	protected function _validateQueryParams($text, $boards)
+	{
+		// @todo move to validation class
+		if ($text !== null)
+		{
+			$text = trim(Util::htmlspecialchars($text));
+			if (empty($text))
+			{
+				return false;
+			}
+		}
+
+		if ($boards !== null)
+		{
+			$boards = array_unique(array_filter(array_map('intval', $boards)));
+		}
+
+		return array($text, $boards);
+	}
+
+	/**
+	 * Updates the css style associated with a prefix to the themes custom.css
+	 *
+	 * @param int $prefix_id
+	 * @param string $style
+	 * @param string $themedir
+	 * @return bool
+	 */
+	protected function _storeStyle($prefix_id, $style, $themedir)
+	{
+		$style = trim($this->_wrapStyle($prefix_id, $style));
+
+		// No change, no save
+		if ($style === trim($this->_defaultStyle($prefix_id)))
+		{
+			return false;
+		}
+
+		// Find this prefix id in the file
+		$file = $themedir . '/css/custom.css';
+		$old_style = $this->_fetchStyle($file, $prefix_id);
+
+		// False means we can't find/open the custom css file
+		if ($old_style === false)
+		{
+			return false;
+		}
+
+		$file_content = file_get_contents($file);
+
+		$new_content = $old_style === '' ? $file_content . "\n" . $style : str_replace($old_style, $style, $file_content);
+
+		file_put_contents($file, $new_content, LOCK_EX);
+
+		return true;
+	}
+
+	/**
+	 * Ensures that the css selector is in the .prefix_id_x { }; format
+	 *
+	 * @param $prefix_id
+	 * @param $style
+	 * @return string
+	 */
+	protected function _wrapStyle($prefix_id, $style)
+	{
+		$style = trim($style);
+
+		if (empty($style))
+		{
+			return $style;
+		}
+
+		// Make sure this is valid css selector
+		$cssSelector = trim(substr($style, 0, strpos($style, '{')));
+		if ($cssSelector === '.prefix_id_' . $prefix_id)
+		{
+			return $style;
+		}
+
+		return '.prefix_id_' . $prefix_id . ' {' . "\n\t" . $style . "\n" . '}';
+	}
+
+	/**
+	 * Save updates to an existing prefix
+	 *
+	 * @param int $id
+	 * @param string|null $text
+	 * @param int[]|null $boards
+	 * @param string|null $style
+	 * @param string|null $themedir
+	 * @return bool
+	 */
 	public function updatePrefix($id, $text = null, $boards = null, $style = null, $themedir = null)
 	{
 		$db = database();
 
 		if (empty($id))
+		{
 			return false;
+		}
 
 		list ($text, $boards) = $this->_validateQueryParams($text, $boards);
 
+		// Nothing to do then we are done!
 		if (empty($text) && empty($boards) && empty($style))
+		{
 			return false;
+		}
 
 		$update = array();
 		if ($text !== null)
+		{
 			$update[] = 'prefix = {string:text}';
+		}
 
 		if ($boards !== null)
+		{
 			$update[] = 'id_boards = {string:boards}';
+		}
 		else
+		{
 			$boards = array();
+		}
 
 		if (!empty($update))
 		{
@@ -443,93 +676,54 @@ class TopicPrefix
 		}
 
 		if ($style !== null)
+		{
 			$this->_storeStyle($id, $style, $themedir);
+		}
 
 		return $id;
 	}
 
-	protected function _validateQueryParams($text, $boards)
-	{
-		// @todo move to validation class
-		if ($text !== null)
-		{
-			$text = trim(Util::htmlspecialchars($text));
-			if (empty($text))
-				return false;
-		}
-
-		if ($boards !== null)
-			$boards = array_unique(array_filter(array_map('intval', $boards)));
-
-		return array($text, $boards);
-	}
-
-	protected function _unWrap($style)
-	{
-		$style = trim($style);
-		$style = trim(substr($style, strpos($style, '{') + 1));
-		$style = trim(substr($style, 0, strpos($style, '}')));
-
-		return $style;
-	}
-
+	/**
+	 * Converts a css style to a array of selectors/values
+	 *
+	 * @param string $style
+	 * @return string[]
+	 */
 	public function styleToArray($style)
 	{
 		$style = $this->_unWrap($style);
 		$styles = explode(';', $style);
+
 		$return = array();
 		foreach ($styles as $val)
 		{
 			$elem = explode(':', $val);
 			if (count($elem) !== 2)
+			{
 				continue;
-			$k = trim($elem[0]);
-			$v = trim($elem[1]);
-			if (!empty($k) && !empty($v))
-				$return[trim($elem[0])] = trim($elem[1]);
+			}
+
+			$selector = trim($elem[0]);
+			$value = trim($elem[1]);
+			if (!empty($selector) && !empty($value))
+			{
+				$return[$selector] = $value;
+			}
 		}
 
 		return $return;
 	}
 
-	protected function _wrapStyle($prefix_id, $style)
+	/**
+	 * Removes the {}'s and indentation from a css block
+	 *
+	 * @param string $style
+	 * @return string
+	 */
+	protected function _unWrap($style)
 	{
-		$style = trim($style);
+		$style = trim($style, '{}');
 
-		if (empty($style))
-			return $style;
-
-		$class = trim(substr($style, 0, strpos($style, '{')));
-
-		if ($class === '.prefix_id_' . $prefix_id)
-			return $style;
-		else
-			return '.prefix_id_' . $prefix_id . ' {
-	' . $style . '
-}';
-	}
-
-	protected function _storeStyle($prefix_id, $style, $themedir)
-	{
-		$style = $this->_wrapStyle($prefix_id, $style);
-
-		if ($style == $this->_defaultStyle($prefix_id))
-			return false;
-
-		$file = $themedir . '/css/custom.css';
-		$old_style = $this->_fetchStyle($file, $prefix_id);
-
-		if ($old_style === false)
-			return false;
-
-		$file_content = file_get_contents($file);
-
-		if ($old_style === true)
-			$new_content = $file_content . "\n\n" . $style;
-		else
-			$new_content = str_replace($old_style, $style, $file_content);
-		file_put_contents($file, $new_content);
-
-		return true;
+		return trim(substr($style, strpos($style, '{') + 1));
 	}
 }

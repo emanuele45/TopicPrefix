@@ -6,9 +6,13 @@
  * @author  emanuele
  * @license BSD http://opensource.org/licenses/BSD-3-Clause
  *
- * @version 1.0.0
+ * @version 0.0.5
  */
 
+/**
+ * Creates the style picker output base on all available styles in the system
+ * Note: smalltext is used in the JS to define the help items
+ */
 function template_profile_style_picker()
 {
 	global $context, $txt;
@@ -17,19 +21,35 @@ function template_profile_style_picker()
 	{
 		echo '
 			<dt>
-				<strong><label for="style_picker_vals_', $name, '">', isset($txt['style_picker_' . $name]) ? $txt['style_picker_' . $name] : $name, '</label></strong>
+				<label for="style_picker_vals_', $name, '">', isset($txt['style_picker_' . $name]) ? $txt['style_picker_' . $name] : $name, '</label>
 				<input type="hidden" name="style_picker_picker" value="1" />';
+
+		// Show some help text
 		if (isset($txt['style_picker_' . $name . '_desc']))
+		{
 			echo '
 				<br />
 				<span class="smalltext">', $txt['style_picker_' . $name . '_desc'], '</span>';
+		}
+
 		echo '
 			</dt>
-			<dd>', template_style_picker_builder($values['type'], $name, $values), '
+			<dd>';
+
+		template_style_picker_builder($values['type'], $name, $values);
+
+		echo '	
 			</dd>';
 	}
 }
 
+/**
+ * Creates the proper input box for a given style type
+ *
+ * @param string $type
+ * @param string $name
+ * @param array $values
+ */
 function template_style_picker_builder($type, $name, $values)
 {
 	global $txt;
@@ -51,9 +71,13 @@ function template_style_picker_builder($type, $name, $values)
 		case 'select':
 			echo '
 				<select id="style_picker_vals_', $name, '" name="style_picker_vals[', $name, ']">';
+
 			foreach ($values['values'] as $key => $val)
+			{
 				echo '
 					<option value="', $key, '"', $value == $val ? ' selected="selected"' : '', '>', $val, '</option>';
+			}
+
 			echo '
 				</select>';
 			break;
