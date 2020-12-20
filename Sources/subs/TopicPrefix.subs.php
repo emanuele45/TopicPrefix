@@ -5,11 +5,8 @@
  * @author  emanuele
  * @license BSD http://opensource.org/licenses/BSD-3-Clause
  *
- * @version 0.0.2
+ * @version 0.0.5
  */
-
-if (!defined('ELK'))
-	die('No access...');
 
 function topicprefix_showprefix($topicsinfo)
 {
@@ -25,13 +22,15 @@ function topicprefix_showprefix($topicsinfo)
 			$has_prefix = true;
 			$prefix_markup = topicprefix_prefix_marktup($prefixes[$topic]);
 
-			$context['topics'][$topic]['first_post']['link'] =  $prefix_markup . $context['topics'][$topic]['first_post']['link'];
+			$context['topics'][$topic]['first_post']['link'] = $prefix_markup . $context['topics'][$topic]['first_post']['link'];
 			$context['topics'][$topic]['subject'] = $prefix_markup . $context['topics'][$topic]['subject'];
 		}
 	}
 
 	if ($has_prefix)
+	{
 		loadCSSFile('TopicPrefix.css');
+	}
 }
 
 function topicprefix_prefix_marktup($prefix_info, $board = null)
@@ -39,9 +38,13 @@ function topicprefix_prefix_marktup($prefix_info, $board = null)
 	global $settings, $modSettings, $scripturl;
 
 	if (!isset($settings['prefix_style']))
+	{
 		$prefix_style = $modSettings['prefix_style'];
+	}
 	else
+	{
 		$prefix_style = $settings['prefix_style'];
+	}
 
 	$find = array(
 		'{prefix}',
@@ -54,5 +57,27 @@ function topicprefix_prefix_marktup($prefix_info, $board = null)
 		'<a href="' . $scripturl . '?action=prefix;sa=prefixedtopics;id=' . $prefix_info['id_prefix'] . ($board === null ? '' : ';board=' . $board) . '">' . $prefix_info['prefix'] . '</a>',
 		'prefix_id_' . $prefix_info['id_prefix'],
 	);
+
 	return str_replace($find, $replace, $prefix_style);
+}
+
+/**
+ * Load a prefix details by id
+ *
+ * @param int|null $prefix_id
+ * @return array|bool
+ */
+function topicprefixLoadId($prefix_id = null)
+{
+	global $settings;
+
+	$prefixManager = new TopicPrefix();
+	$topicPrefix = $prefixManager->getPrefixDetails($prefix_id);
+
+	if (!empty($prefix_id))
+	{
+		$topicPrefix['style'] = $prefixManager->getStyle($prefix_id, $settings['theme_dir']);
+	}
+
+	return $topicPrefix;
 }

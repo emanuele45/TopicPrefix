@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!DOCTYPE package-info SYSTEM "http://www.elkarte.net/site/package-info">
-<package-info xmlns="http://www.elkarte.net/site/package-info" xmlns:elk="http://www.elkarte.net/">
+<!DOCTYPE package-info SYSTEM "https://www.elkarte.net/site/package-info">
+<package-info xmlns="https://www.elkarte.net/site/package-info" xmlns:elk="https://www.elkarte.net/">
 	<license><![CDATA[
 /**
  * Topics Prefix
@@ -8,30 +8,31 @@
  * @author  emanuele
  * @license BSD http://opensource.org/licenses/BSD-3-Clause
  *
- * @version 0.0.3
+ * @version 0.0.5
  */
 	]]></license>
 	<id>emanuele:TopicsPrefix</id>
 	<name>Topics Prefix</name>
-	<version>0.0.3</version>
+	<version>0.0.5</version>
 	<type>modification</type>
 	<install for="1.0 - 1.1.99">
 		<modification>modifications.xml</modification>
-		<require-file name="TopicPrefix.integrate.php" destination="SOURCEDIR" />
-		<require-file name="ManagePrefix.controller.php" destination="ADMINDIR" />
-		<require-file name="Prefix.controller.php" destination="CONTROLLERDIR" />
-		<require-file name="TopicPrefix.class.php" destination="SUBSDIR" />
-		<require-file name="TopicPrefixPxCRUD.class.php" destination="SUBSDIR" />
-		<require-file name="TopicPrefixTcCRUD.class.php" destination="SUBSDIR" />
-		<require-file name="TopicPrefix.subs.php" destination="SUBSDIR" />
-		<require-file name="TopicPrefix.english.php" destination="LANGUAGEDIR/english" />
-		<require-file name="TopicPrefix.template.php" destination="THEMEDIR" />
-		<require-file name="TopicPrefix.js" destination="THEMEDIR/scripts" />
-		<require-file name="TopicPrefix.css" destination="THEMEDIR/css" />
+		<require-file name="Sources/TopicPrefix.integrate.php" destination="SOURCEDIR" />
+		<require-file name="Sources/admin/ManagePrefix.controller.php" destination="ADMINDIR" />
+		<require-file name="Sources/controller/Prefix.controller.php" destination="CONTROLLERDIR" />
+		<require-file name="Sources/subs/TopicPrefix.class.php" destination="SUBSDIR" />
+		<require-file name="Sources/subs/TopicPrefixPxCRUD.class.php" destination="SUBSDIR" />
+		<require-file name="Sources/subs/TopicPrefixTcCRUD.class.php" destination="SUBSDIR" />
+		<require-file name="Sources/subs/TopicPrefix.subs.php" destination="SUBSDIR" />
+		<require-file name="Themes/TopicPrefix.english.php" destination="LANGUAGEDIR/english" />
+		<require-file name="Themes/TopicPrefix.template.php" destination="THEMEDIR" />
+		<require-file name="Themes/TopicPrefix.js" destination="THEMEDIR/scripts" />
+		<require-file name="Themes/TopicPrefix.css" destination="THEMEDIR/css" />
 		<require-file name="Prefix/StylePicker.class.php" destination="SUBSDIR/Prefix" />
 		<require-file name="Prefix/StylePicker.english.php" destination="LANGUAGEDIR/english/Prefix" />
 		<require-file name="Prefix/StylePicker.template.php" destination="THEMEDIR/Prefix" />
 		<code>install.php</code>
+		<redirect url="index.php?action=admin;area=postsettings;sa=prefix" timeout="3000" />
 	</install>
 	<uninstall for="1.0 - 1.1.99">
 		<modification reverse="true">modifications.xml</modification>

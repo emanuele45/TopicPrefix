@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<!DOCTYPE modification SYSTEM "http://www.elkarte.net/site/modification">
-<modification xmlns="http://www.elkarte.net/site/modification" xmlns:elk="http://www.elkarte.net/">
+<!DOCTYPE modification SYSTEM "https://www.elkarte.net/site/modification">
+<modification xmlns="https://www.elkarte.net/site/modification" xmlns:elk="https://www.elkarte.net/">
 
 	<id>emanuele:TopicsPrefix</id>
-	<version>1.0</version>
+	<version>0.0.5</version>
 
 	<file name="CONTROLLERDIR/MessageIndex.controller.php">
 		<operation>
@@ -13,13 +13,10 @@
 			$possibleActions[] = 'merge';
 			if (allowedTo('moderate_forum'))
 				$possibleActions[] = 'addprefix';
-			
-			
+
 			]]></add>
 		</operation>
-		
-		
-		
+
 		<operation>
 			<search position="replace"><![CDATA[case 'lock':
 						$lockCache[] = $row['id_topic'];
@@ -27,12 +24,9 @@
 			<add><![CDATA[case 'lock':
 						$lockCache[] = $row['id_topic'];
 						break;
-			
-			
+
 			case  'addprefix':
-
 				$prefix = (int) $_REQUEST['prefix'];
-
 				if (!empty($prefix))
 				{
 					$db = database();
@@ -48,17 +42,13 @@
 								),
 								array('id_prefix', 'id_topic')
 							);
-
-
 				}
 
 			break;
-				
-			
+
 			]]></add>
-		</operation>		
-		
-</file>
+		</operation>
+	</file>
 
 	<file name="THEMEDIR/MessageIndex.template.php">
 		<operation>
@@ -68,7 +58,8 @@
 			echo '
 								<select name="prefix">
 								<option value="0"></option>';
-	
+
+0.05))
 	if (!empty($context['available_prefixes']))
 	foreach ($context['available_prefixes'] as $id => $prefix)
 		echo '
@@ -77,15 +68,7 @@
 	echo '
 								</select>';
 			//end dropdown box
-			
 			]]></add>
 		</operation>
 	</file>
-		
-
-
-
-
-
 </modification>
-	

@@ -6,7 +6,7 @@
  * @author  emanuele
  * @license BSD http://opensource.org/licenses/BSD-3-Clause
  *
- * @version 0.0.2
+ * @version 0.0.5
  */
 
 spl_autoload_register(array('Topic_Prefix_Integrate', 'autoload'));
@@ -29,6 +29,12 @@ class Topic_Prefix_Integrate
 		}
 	}
 
+	/**
+	 * Get the prefix's that can be used on this board
+	 *
+	 * @param $topicsinfo
+	 * @throws \Elk_Exception
+	 */
 	public static function messageindex_listing($topicsinfo)
 	{
 		global $context, $board;
@@ -43,12 +49,36 @@ class Topic_Prefix_Integrate
 		{
 			loadTemplate('TopicPrefix');
 			loadLanguage('TopicPrefix');
+
 			Template_Layers::getInstance()->addAfter('boardprefixes', 'topic_listing');
 
 			$context['prefixes_board_specific'] = array();
 			foreach ($prefixes as $id => $prefix)
+			{
 				$context['prefixes_board_specific'][] = topicprefix_prefix_marktup(array('id_prefix' => $id, 'prefix' => $prefix['text']), $board);
+			}
 		}
+	}
+
+	public static function quick_mod_actions()
+	{
+		global $context, $topic, $txt, $board;
+
+		$context['qmod_actions'][] = 'addprefix';
+
+		$context['can_addprefix'] = allowedTo('moderate_forum');
+
+		$px_manager = new TopicPrefix();
+
+
+		$available_prefixes = $px_manager->loadPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null, $board);
+
+		if (count($available_prefixes) > 1)
+		{
+			$context['available_prefixes'] = $available_prefixes;
+		}
+
+
 	}
 	
 	public static function quick_mod_actions()
@@ -97,7 +127,9 @@ class Topic_Prefix_Integrate
 		// This has a meaning only for first posts
 		// that means new topics or editing the first message
 		if (!$context['is_first_post'])
+		{
 			return;
+		}
 
 		// All the template stuff
 		loadTemplate('TopicPrefix');
@@ -115,7 +147,9 @@ class Topic_Prefix_Integrate
 		$available_prefixes = $px_manager->loadPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null, $board);
 
 		if (count($available_prefixes) > 1)
+		{
 			$context['available_prefixes'] = $available_prefixes;
+		}
 	}
 
 	public static function create_topic($msgOptions, $topicOptions, $posterOptions)
