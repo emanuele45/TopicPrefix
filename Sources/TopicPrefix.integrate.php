@@ -136,7 +136,8 @@ class Topic_Prefix_Integrate
 		{
 			require_once(SUBSDIR . '/TopicPrefix.subs.php');
 			loadCSSFile('TopicPrefix.css');
-			$context['num_views_text'] = sprintf($txt['topicprefix_linktree'], topicprefix_prefix_marktup($prefixes[$topic])) . ' ' . $context['num_views_text'];
+// 			$context['num_views_text'] = sprintf($txt['topicprefix_linktree'], topicprefix_prefix_marktup($prefixes[$topic])) . ' ' . $context['num_views_text'];
+			$txt['topic'] = topicprefix_prefix_marktup($prefixes[$topic]) . ' ' . $txt['topic'];
 		}
 	}
 
