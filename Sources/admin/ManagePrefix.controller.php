@@ -407,7 +407,7 @@ class ManagePrefix_Controller extends Action_Controller
 		{
 			if (!empty($val))
 			{
-				$data['prefix_style'] .= $key . ': ' . $val . ";\n\t";
+				$data['prefix_style'] .= $key . ': ' . $val . " !important;\n\t";
 			}
 		}
 
