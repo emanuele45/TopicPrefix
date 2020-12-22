@@ -201,7 +201,14 @@ class TopicPrefix_TcCRUD
 		// If the prefix is empty, just cleanup any potential mess and live happy!
 		if (empty($id_prefix))
 		{
-			return $this->deleteByTopicPrefix($id_topic, $current[$id_topic]['id_prefix']);
+			if (empty($current[$id_topic]))
+			{
+				return;
+			}
+			else
+			{
+				return $this->deleteByTopicPrefix($id_topic, $current[$id_topic]['id_prefix']);
+			}
 		}
 
 		// If the record doesn't exist it's time to create it
