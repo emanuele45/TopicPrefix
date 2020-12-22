@@ -52,7 +52,7 @@ class TopicPrefix
 
 		// This has a meaning only for first posts
 		// that means new topics or editing the first message
-		if (!$context['is_first_post'])
+		if (!empty($context['is_first_post']))
 		{
 			return [];
 		}
