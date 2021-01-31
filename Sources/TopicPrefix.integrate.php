@@ -96,25 +96,6 @@ class Topic_Prefix_Integrate
 		}
 	}
 	
-	public static function quick_mod_actions()
-	{
-		global $context, $topic, $txt, $board;
-
-		$context['qmod_actions'][] = 'addprefix';
-		
-		$context['can_addprefix'] = allowedTo('moderate_forum');
-		
-		$px_manager = new TopicPrefix();
-
-
-		$available_prefixes = $px_manager->loadPrefixes(isset($prefix['id_prefix']) ? $prefix['id_prefix'] : null, $board);
-
-		if (count($available_prefixes) > 1)
-			$context['available_prefixes'] = $available_prefixes;
-
-		
-	}
-	
 	
 	
 
