@@ -87,17 +87,21 @@ class Topic_Prefix_Integrate
 		$context['can_addprefix'] = allowedTo('moderate_forum');
 
 		loadLanguage('TopicPrefix');
+		loadJavascriptFile('TopicPrefixQuick.js');
 		$px_manager = new TopicPrefix();
 		$available_prefixes = $px_manager->loadPrefixes(null, $board);
-
+// _debug($available_prefixes);
 		if (count($available_prefixes) > 1)
 		{
-			$context['available_prefixes'] = $available_prefixes;
+			$quick_prefixes = 'var quick_prefixes = [';
+			foreach ($available_prefixes as $id => $value)
+			{
+				$quick_prefixes .= '{"id": ' . $id . ', "text": ' . JavaScriptEscape($value['text']) . '},';
+			}
 		}
+		$quick_prefixes = substr($quick_prefixes, 0, -1) . ']';
+		addInlineJavascript($quick_prefixes);
 	}
-	
-	
-	
 
 	/**
 	 * Injects the prefix button for a given topic in the topic header bar

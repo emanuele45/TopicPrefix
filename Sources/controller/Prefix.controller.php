@@ -63,6 +63,7 @@ class Prefix_Controller extends Action_Controller
 		$subActions = array(
 			'prefixlist' => array($this, 'action_prefixlist'),
 			'prefixedtopics' => array($this, 'action_prefixedtopics'),
+			'addprefix' => array($this, 'action_addprefix'),
 		);
 
 		$action = new Action();
@@ -73,6 +74,21 @@ class Prefix_Controller extends Action_Controller
 
 		// Now go!
 		$action->dispatch($subAction);
+	}
+
+	public function action_addprefix()
+	{
+		checkSession();
+
+		$prefix = new TopicPrefix();
+		$prefix_id = $this->_req->getPost('prefix_id', 'intval', 0);
+
+		foreach ($this->_req->getPost('topics') as $topic)
+		{
+			$prefix->updateTopicPrefix((int) $topic, $prefix_id);
+		}
+		// I'm currently too lazy to implement any return... sorry. O:-)
+		die();
 	}
 
 	/**
